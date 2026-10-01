@@ -35,7 +35,7 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
             return;
         }
         Directory.CreateDirectory(_shots);
-        var work = Path.Combine(Path.GetDirectoryName(exe)!, "..", "uiwork");
+        var work = _work = Path.Combine(Path.GetDirectoryName(exe)!, "..", "uiwork");
         if (Directory.Exists(work)) Directory.Delete(work, true);
         Directory.CreateDirectory(work);
         var copy = Path.Combine(work, "QLVB.exe");
@@ -239,7 +239,8 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Keyboard.Type("Nhap sai ngay khi kiem thu");
         Click(lyDoXoa, "Xóa văn bản");
         var daXoa = WaitWindow("Quản lý văn bản đi – đến", exact: true);
-        Assert.Contains(daXoa.FindAllDescendants(c => c.ByControlType(ControlType.Text)), t => t.Name.Contains("được cấp cho văn bản nhập tiếp theo"));
+        var thongBao = string.Join(" ", daXoa.FindAllDescendants(c => c.ByControlType(ControlType.Text)).Select(t => t.Name));
+        Assert.True(thongBao.Contains("được cấp cho văn bản nhập tiếp theo", StringComparison.Ordinal), thongBao + Environment.NewLine + LogErrors());
         DismissMessage();
         Assert.True(SpinWait(() => FindRow(main, "99/UI-TEST") == null, Wait), "Văn bản chưa bị xóa");
         AssertNoErrorDialog();
@@ -336,6 +337,20 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         }
     }
 
+    private string? _work;
+
+    /// <summary>Các dòng lỗi trong nhật ký kỹ thuật (đã lọc thông tin nhạy cảm) để chẩn đoán khi kiểm thử thất bại.</summary>
+    private string LogErrors()
+    {
+        try
+        {
+            var lines = Directory.GetFiles(Path.Combine(_work!, "Data", "Logs"), "*.log").SelectMany(File.ReadAllLines).ToList();
+            var idx = lines.FindLastIndex(l => l.Contains("[ERR]") || l.Contains("[FTL]"));
+            return idx < 0 ? "(nhật ký không có lỗi)" : string.Join(Environment.NewLine, lines.Skip(idx).Take(25));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return "(không đọc được nhật ký)"; }
+    }
+
     private void AssertNoErrorDialog()
     {
         var err = AllWindows().FirstOrDefault(w => w.FindFirstDescendant(cf => cf.ByName("OK").And(cf.ByControlType(ControlType.Button))) != null);
@@ -343,7 +358,7 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         {
             Shot(err, "loi-bat-ngo");
             var text = string.Join(" ", err.FindAllDescendants(cf => cf.ByControlType(ControlType.Text)).Select(t => t.Name));
-            throw new Exception("Xuất hiện hộp thoại lỗi: " + text);
+            throw new Exception("Xuất hiện hộp thoại lỗi: " + text + Environment.NewLine + LogErrors());
         }
     }
 
