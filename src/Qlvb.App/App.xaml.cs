@@ -28,13 +28,13 @@ public partial class App : System.Windows.Application
         FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement),
             new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(vi.IetfLanguageTag)));
 
-        // Chữ gợi ý mặc định của DatePicker là tiếng Anh ("Select a date"): thay bằng tiếng Việt.
+        // Bỏ chữ gợi ý tiếng Anh mặc định của DatePicker ("Select a date"); nhãn phía trên đã nói rõ ô nhập gì.
         EventManager.RegisterClassHandler(typeof(DatePicker), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, _) =>
         {
             if (s is DatePicker dp && dp.Template?.FindName("PART_TextBox", dp) is DatePickerTextBox tb)
             {
                 tb.ApplyTemplate();
-                if (tb.Template?.FindName("PART_Watermark", tb) is ContentControl wm) wm.Content = "dd/mm/yyyy";
+                if (tb.Template?.FindName("PART_Watermark", tb) is ContentControl wm) wm.Content = "";
             }
         }));
 

@@ -51,11 +51,11 @@
                     </StackPanel>
                     <StackPanel Margin="0,0,12,4">
                         <TextBlock x:Name="LblNgay" Text="Ngày văn bản từ" Style="{StaticResource Hint}" />
-                        <DatePicker x:Name="DpTu" Width="130" />
+                        <DatePicker x:Name="DpTu" Width="150" />
                     </StackPanel>
                     <StackPanel Margin="0,0,12,4">
                         <TextBlock Text="đến" Style="{StaticResource Hint}" />
-                        <DatePicker x:Name="DpDen" Width="130" />
+                        <DatePicker x:Name="DpDen" Width="150" />
                     </StackPanel>
                     <!-- Riêng sổ đi -->
                     <StackPanel x:Name="PnlNguoiKy" Margin="0,0,12,4">
@@ -82,8 +82,8 @@
                     <StackPanel x:Name="PnlNgayVb" Margin="0,0,12,4">
                         <TextBlock Text="Ngày văn bản từ – đến" Style="{StaticResource Hint}" />
                         <StackPanel Orientation="Horizontal">
-                            <DatePicker x:Name="DpVbTu" Width="130" />
-                            <DatePicker x:Name="DpVbDen" Width="130" Margin="6,2,0,2" />
+                            <DatePicker x:Name="DpVbTu" Width="150" />
+                            <DatePicker x:Name="DpVbDen" Width="150" Margin="6,2,0,2" />
                         </StackPanel>
                     </StackPanel>
                     <StackPanel Margin="0,0,12,4">

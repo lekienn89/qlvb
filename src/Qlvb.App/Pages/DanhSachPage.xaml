@@ -43,11 +43,11 @@
                 </StackPanel>
                 <StackPanel Margin="0,0,12,0">
                     <TextBlock x:Name="TxtDateLabel" Text="Từ ngày" Style="{StaticResource Hint}" />
-                    <DatePicker x:Name="DpTu" Width="130" SelectedDateChanged="Filter_Changed" />
+                    <DatePicker x:Name="DpTu" Width="150" SelectedDateChanged="Filter_Changed" />
                 </StackPanel>
                 <StackPanel Margin="0,0,12,0">
                     <TextBlock Text="Đến ngày" Style="{StaticResource Hint}" />
-                    <DatePicker x:Name="DpDen" Width="130" SelectedDateChanged="Filter_Changed" />
+                    <DatePicker x:Name="DpDen" Width="150" SelectedDateChanged="Filter_Changed" />
                 </StackPanel>
                 <Button Content="Xóa lọc" VerticalAlignment="Bottom" Click="BtnClear_Click" />
             </WrapPanel>

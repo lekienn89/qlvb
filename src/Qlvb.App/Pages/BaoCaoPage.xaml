@@ -23,11 +23,11 @@
                 </StackPanel>
                 <StackPanel Margin="0,0,12,4">
                     <TextBlock Text="Ngày đăng ký từ" Style="{StaticResource Hint}" />
-                    <DatePicker x:Name="DpTu" Width="130" />
+                    <DatePicker x:Name="DpTu" Width="150" />
                 </StackPanel>
                 <StackPanel Margin="0,0,12,4">
                     <TextBlock Text="đến" Style="{StaticResource Hint}" />
-                    <DatePicker x:Name="DpDen" Width="130" />
+                    <DatePicker x:Name="DpDen" Width="150" />
                 </StackPanel>
                 <StackPanel Margin="0,0,12,4">
                     <TextBlock Text="Độ mật" Style="{StaticResource Hint}" />
