@@ -22,6 +22,7 @@ public sealed class InputDialog : Window
     private readonly TextBox? _text;
     private readonly PasswordBox? _pw;
     private readonly int _minLength;
+    private bool _done;
     private readonly TextBlock _err = new() { Foreground = System.Windows.Media.Brushes.Firebrick, TextWrapping = TextWrapping.Wrap };
 
     public string Value => _pw?.Password ?? _text?.Text ?? "";
@@ -53,11 +54,14 @@ public sealed class InputDialog : Window
         var ok = new Button { Content = okText, IsDefault = !multiline, Style = (Style)System.Windows.Application.Current.FindResource("PrimaryButton") };
         ok.Click += (_, _) =>
         {
+            // Bấm OK lần hai (bấm đúp, hoặc công cụ trợ năng gửi lại lệnh) khi hộp thoại đã đóng thì bỏ qua.
+            if (_done) return;
             if (Value.Trim().Length < _minLength)
             {
                 _err.Text = _minLength <= 1 ? "Vui lòng nhập nội dung." : $"Vui lòng nhập ít nhất {_minLength} ký tự.";
                 return;
             }
+            _done = true;
             DialogResult = true;
         };
         var cancel = new Button { Content = "Hủy bỏ", IsCancel = true };

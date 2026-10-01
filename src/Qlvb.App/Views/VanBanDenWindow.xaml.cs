@@ -229,6 +229,7 @@ public partial class VanBanDenWindow : Window
 
     private void BtnSave_Click(object sender, RoutedEventArgs e)
     {
+        if (!IsVisible) return; // lệnh bấm đến sau khi form đã lưu và đóng: không lưu lần hai
         if (Save()) DialogResult = true;
     }
 

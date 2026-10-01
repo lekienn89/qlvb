@@ -48,7 +48,7 @@ public static class Dlg
         var bar = new System.Windows.Controls.StackPanel { Orientation = System.Windows.Controls.Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 16, 0, 0) };
         var yes = new System.Windows.Controls.Button { Content = "Đồng ý", IsDefault = !danger };
         if (!danger) yes.Style = (Style)System.Windows.Application.Current.FindResource("PrimaryButton");
-        yes.Click += (_, _) => w.DialogResult = true;
+        yes.Click += (_, _) => { if (w.IsVisible) w.DialogResult = true; };
         var no = new System.Windows.Controls.Button { Content = "Không", IsCancel = true, IsDefault = danger };
         bar.Children.Add(yes);
         bar.Children.Add(no);

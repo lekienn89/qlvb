@@ -21,7 +21,7 @@ public sealed class ConfirmChangesWindow : Window
         dock.Children.Add(head);
         var buttons = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 10, 0, 0) };
         var ok = new Button { Content = "Lưu thay đổi", IsDefault = true, Style = (Style)FindResource("PrimaryButton") };
-        ok.Click += (_, _) => DialogResult = true;
+        ok.Click += (_, _) => { if (IsVisible) DialogResult = true; };
         buttons.Children.Add(ok);
         buttons.Children.Add(new Button { Content = "Quay lại sửa", IsCancel = true });
         DockPanel.SetDock(buttons, Dock.Bottom);
