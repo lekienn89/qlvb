@@ -12,7 +12,7 @@ public sealed class TroGiupPage : UserControl, IPage
     private static readonly (string H, string[] P)[] Sections =
     [
         ("Căn cứ pháp lý", [
-            "Luật Bảo vệ bí mật nhà nước số 117/2025/QH15; Nghị định số 63/2026/NĐ-CP ngày 28/02/2026 và Phụ lục (thay thế theo Công văn số 2663/VPCP-NC ngày 27/03/2026): Sổ đăng ký bí mật nhà nước đi, đến.",
+            "Luật Bảo vệ bí mật nhà nước số 117/2025/QH15; Nghị định số 63/2026/NĐ-CP ngày 28/02/2026 và Phụ lục III (thay thế theo Công văn số 2663/VPCP-NC ngày 27/03/2026): Sổ đăng ký bí mật nhà nước đi, đến.",
             "Thông tư 24/2020/TT-BCA (mẫu số 14, 15) chỉ dùng để đối chiếu lịch sử, không còn là căn cứ hiện hành.",
             "Máy tính dùng phần mềm phải là máy KHÔNG kết nối Internet/mạng (Luật 117/2025/QH15). Phần mềm không có bất kỳ chức năng kết nối mạng nào.",
             "Sổ in từ phần mềm phục vụ ký nhận, lưu giữ theo quy định của cơ quan; phần mềm không thay thế quy trình quản lý sổ của cơ quan.",

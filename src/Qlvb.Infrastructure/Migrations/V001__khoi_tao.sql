@@ -1,5 +1,5 @@
 -- QLVB – lược đồ cơ sở dữ liệu phiên bản 1
--- Căn cứ: Phụ lục Nghị định 63/2026/NĐ-CP (thay thế theo Công văn 2663/VPCP-NC)
+-- Căn cứ: Phụ lục III Nghị định 63/2026/NĐ-CP (thay thế theo Công văn 2663/VPCP-NC)
 
 CREATE TABLE cau_hinh (
     khoa    TEXT PRIMARY KEY,
@@ -213,7 +213,7 @@ INSERT INTO do_mat (ten, ky_hieu, muc, cam_trich_yeu, dang_dung) VALUES
     ('TỐI MẬT',   'B', 2, 0, 1),
     ('MẬT',       'C', 1, 0, 1);
 
--- Tên loại văn bản và chữ viết tắt (Phụ lục Nghị định 30/2020/NĐ-CP). Công văn không có chữ viết tắt.
+-- Tên loại văn bản và chữ viết tắt (Phụ lục III Nghị định 30/2020/NĐ-CP). Công văn không có chữ viết tắt.
 INSERT INTO danh_muc (nhom, ten, ten_khoa, phu_de, thu_tu) VALUES
     ('loai_van_ban', 'Công văn', 'cong van', NULL, 1),
     ('loai_van_ban', 'Quyết định', 'quyet dinh', 'QĐ', 2),

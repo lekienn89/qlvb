@@ -1,6 +1,6 @@
 namespace Qlvb.Domain;
 
-/// <summary>Loại sổ đăng ký theo Phụ lục Nghị định 63/2026/NĐ-CP.</summary>
+/// <summary>Loại sổ đăng ký theo Phụ lục III Nghị định 63/2026/NĐ-CP.</summary>
 public enum LoaiSo
 {
     Di = 1,
