@@ -244,4 +244,34 @@ public class BenVungTests
         if (ex == null) Assert.True(File.Exists(bad));
         Assert.Empty(Directory.GetFiles(env.Dir, "*.dang-ghi", SearchOption.AllDirectories));
     }
+    /// <summary>Nâng cấp dữ liệu cũ (lược đồ 1) lên lược đồ mới: tự sao lưu trước, điền khóa kiểm tra trùng, sổ đã khóa vẫn khóa.</summary>
+    [Fact]
+    public void UpgradeFromSchemaV1_BacksUpFirst_FillsKeys_KeepsLockedBooks()
+    {
+        using var env = new TestEnv();
+        var a = env.NewDi(soKyHieu: "15/BC-TN");
+        env.VanBan.ThemMoi(a);
+        env.VanBan.ThemMoi(env.NewDi(soKyHieu: "16/KH-TN"));
+        // Đưa CSDL về đúng hình dạng lược đồ 1.
+        var c = env.Session.Db!.Connection;
+        void Sql(string q) { using var cmd = c.CreateCommand(); cmd.CommandText = q; cmd.ExecuteNonQuery(); }
+        Sql("DROP INDEX ix_di_trung; DROP INDEX ix_den_trung; DROP INDEX ix_di_tao; DROP INDEX ix_den_tao;");
+        Sql("ALTER TABLE van_ban_di DROP COLUMN khoa_so_ky_hieu; ALTER TABLE van_ban_den DROP COLUMN khoa_so_ky_hieu;");
+        Sql("DELETE FROM schema_version WHERE version >= 2;");
+        env.So.Khoa(env.Store.CurrentSoDangKy(LoaiSo.Di, 2026)!);
+        env.Session.Logout();
+
+        int? from = null;
+        env.Session.Login(TestEnv.Password, (f, _) => from = f);
+        Assert.Equal(1, from);
+        Assert.Equal(Migrator.LatestVersion, Migrator.CurrentVersion(env.Session.Db!));
+        Assert.Contains(env.Backup.List(), b => b.Kind == BackupKind.TruocNangCap);
+        var dup = env.NewDi(soKyHieu: "15/bc-tn");
+        Assert.Contains(env.Store.FindDuplicates(dup), x => x.Id == a.Id);
+        Assert.True(env.Store.CurrentSoDangKy(LoaiSo.Di, 2026)!.DaKhoa);
+        var cu = env.Store.GetDi(a.Id)!;
+        cu.GhiChu = "sửa khi sổ đã khóa";
+        Assert.Throws<BusinessException>(() => env.VanBan.CapNhat(cu));
+        Assert.Null(env.Store.VerifyAuditChain());
+    }
 }

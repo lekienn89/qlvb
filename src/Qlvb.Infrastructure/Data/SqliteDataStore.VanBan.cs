@@ -88,6 +88,7 @@ public sealed partial class SqliteDataStore
         ("$do_mat_ten", v.DoMatTen), ("$do_mat_ky_hieu", v.DoMatKyHieu), ("$ghi_chu", v.GhiChu), ("$ngay_dang_ky", D(v.NgayDangKy)),
         ("$tao_luc", T(v.TaoLuc)), ("$tao_boi", v.TaoBoi), ("$cap_nhat_luc", T(v.CapNhatLuc)), ("$cap_nhat_boi", v.CapNhatBoi),
         ("$phien_ban", v.PhienBan), ("$la_du_lieu_mau", v.LaDuLieuMau ? 1 : 0), ("$search_key", SearchKeyOf(v)),
+        ("$khoa_skh", TextUtil.SearchKey(v.SoKyHieu)),
     ];
 
     public long InsertDi(VanBanDi v, Func<VanBanDi, AuditEntry> audit) => Write(tx =>
@@ -98,9 +99,9 @@ public sealed partial class SqliteDataStore
         SetCounter(LoaiSo.Di, v.Nam, BoDem.SoThuTu, v.SoThuTu, tx);
         Exec("""
             INSERT INTO van_ban_di(so_dang_ky_id, nam, so_thu_tu, so_ky_hieu, ngay_van_ban, ten_loai, trich_yeu, do_mat_id, do_mat_ten, do_mat_ky_hieu,
-              nguoi_ky, don_vi_luu, so_luong, ghi_chu, trang_thai, ngay_dang_ky, tao_luc, tao_boi, cap_nhat_luc, cap_nhat_boi, phien_ban, la_du_lieu_mau, search_key)
+              nguoi_ky, don_vi_luu, so_luong, ghi_chu, trang_thai, ngay_dang_ky, tao_luc, tao_boi, cap_nhat_luc, cap_nhat_boi, phien_ban, la_du_lieu_mau, search_key, khoa_so_ky_hieu)
             VALUES($so_dang_ky_id, $nam, $so_thu_tu, $so_ky_hieu, $ngay_van_ban, $ten_loai, $trich_yeu, $do_mat_id, $do_mat_ten, $do_mat_ky_hieu,
-              $nguoi_ky, $don_vi_luu, $so_luong, $ghi_chu, 0, $ngay_dang_ky, $tao_luc, $tao_boi, $cap_nhat_luc, $cap_nhat_boi, $phien_ban, $la_du_lieu_mau, $search_key)
+              $nguoi_ky, $don_vi_luu, $so_luong, $ghi_chu, 0, $ngay_dang_ky, $tao_luc, $tao_boi, $cap_nhat_luc, $cap_nhat_boi, $phien_ban, $la_du_lieu_mau, $search_key, $khoa_skh)
             """, tx, [.. BaseParams(v), ("$nguoi_ky", v.NguoiKy), ("$don_vi_luu", v.DonViLuu), ("$so_luong", v.SoLuong)]);
         v.Id = LastId(tx);
         SaveNoiNhan(v, tx);
@@ -134,10 +135,10 @@ public sealed partial class SqliteDataStore
         Exec("""
             INSERT INTO van_ban_den(so_dang_ky_id, nam, so_thu_tu, ngay_den, so_den, co_quan_ban_hanh, so_ky_hieu, ngay_van_ban, ten_loai, trich_yeu,
               do_mat_id, do_mat_ten, do_mat_ky_hieu, don_vi_nhan, da_ky_nhan, nguoi_ky_nhan, ngay_ky_nhan, ghi_chu, trang_thai, ngay_dang_ky,
-              tao_luc, tao_boi, cap_nhat_luc, cap_nhat_boi, phien_ban, la_du_lieu_mau, search_key)
+              tao_luc, tao_boi, cap_nhat_luc, cap_nhat_boi, phien_ban, la_du_lieu_mau, search_key, khoa_so_ky_hieu)
             VALUES($so_dang_ky_id, $nam, $so_thu_tu, $ngay_den, $so_den, $co_quan, $so_ky_hieu, $ngay_van_ban, $ten_loai, $trich_yeu,
               $do_mat_id, $do_mat_ten, $do_mat_ky_hieu, $don_vi_nhan, $da_ky, $nguoi_ky_nhan, $ngay_ky_nhan, $ghi_chu, 0, $ngay_dang_ky,
-              $tao_luc, $tao_boi, $cap_nhat_luc, $cap_nhat_boi, $phien_ban, $la_du_lieu_mau, $search_key)
+              $tao_luc, $tao_boi, $cap_nhat_luc, $cap_nhat_boi, $phien_ban, $la_du_lieu_mau, $search_key, $khoa_skh)
             """, tx, [.. BaseParams(v), .. DenParams(v)]);
         v.Id = LastId(tx);
         Audit(tx, audit(v));
@@ -155,7 +156,7 @@ public sealed partial class SqliteDataStore
         var n = Exec("""
             UPDATE van_ban_di SET so_ky_hieu=$so_ky_hieu, ngay_van_ban=$ngay_van_ban, ten_loai=$ten_loai, trich_yeu=$trich_yeu, do_mat_id=$do_mat_id,
               do_mat_ten=$do_mat_ten, do_mat_ky_hieu=$do_mat_ky_hieu, nguoi_ky=$nguoi_ky, don_vi_luu=$don_vi_luu, so_luong=$so_luong, ghi_chu=$ghi_chu,
-              ngay_dang_ky=$ngay_dang_ky, cap_nhat_luc=$cap_nhat_luc, cap_nhat_boi=$cap_nhat_boi, phien_ban=phien_ban+1, search_key=$search_key
+              ngay_dang_ky=$ngay_dang_ky, cap_nhat_luc=$cap_nhat_luc, cap_nhat_boi=$cap_nhat_boi, phien_ban=phien_ban+1, search_key=$search_key, khoa_so_ky_hieu=$khoa_skh
             WHERE id=$id AND phien_ban=$phien_ban
             """, tx, [.. BaseParams(v), ("$nguoi_ky", v.NguoiKy), ("$don_vi_luu", v.DonViLuu), ("$so_luong", v.SoLuong), ("$id", v.Id)]);
         if (n == 0) throw new ConcurrencyException();
@@ -170,7 +171,7 @@ public sealed partial class SqliteDataStore
             UPDATE van_ban_den SET ngay_den=$ngay_den, co_quan_ban_hanh=$co_quan, so_ky_hieu=$so_ky_hieu, ngay_van_ban=$ngay_van_ban, ten_loai=$ten_loai,
               trich_yeu=$trich_yeu, do_mat_id=$do_mat_id, do_mat_ten=$do_mat_ten, do_mat_ky_hieu=$do_mat_ky_hieu, don_vi_nhan=$don_vi_nhan,
               da_ky_nhan=$da_ky, nguoi_ky_nhan=$nguoi_ky_nhan, ngay_ky_nhan=$ngay_ky_nhan, ghi_chu=$ghi_chu, ngay_dang_ky=$ngay_dang_ky,
-              cap_nhat_luc=$cap_nhat_luc, cap_nhat_boi=$cap_nhat_boi, phien_ban=phien_ban+1, search_key=$search_key
+              cap_nhat_luc=$cap_nhat_luc, cap_nhat_boi=$cap_nhat_boi, phien_ban=phien_ban+1, search_key=$search_key, khoa_so_ky_hieu=$khoa_skh
             WHERE id=$id AND phien_ban=$phien_ban
             """, tx, [.. BaseParams(v), .. DenParams(v), ("$id", v.Id)]);
         if (n == 0) throw new ConcurrencyException();
@@ -320,14 +321,14 @@ public sealed partial class SqliteDataStore
         if (v is VanBanDi di)
         {
             // Cùng số, ký hiệu trong cùng năm.
-            var list = Query("SELECT * FROM van_ban_di WHERE trang_thai=0 AND id<>$id AND nam=$n AND bo_dau(so_ky_hieu)=$s LIMIT 20", MapDi, null,
+            var list = Query("SELECT * FROM van_ban_di WHERE trang_thai=0 AND id<>$id AND nam=$n AND khoa_so_ky_hieu=$s LIMIT 20", MapDi, null,
                 ("$id", v.Id), ("$n", v.NgayDangKy.Year), ("$s", skh));
             LoadNoiNhan(list);
             return list;
         }
         var den = (VanBanDen)v;
         // Cùng cơ quan ban hành + số ký hiệu + ngày văn bản (văn bản đến có thể đã được đăng ký ở năm trước).
-        return Query<VanBanBase>("SELECT * FROM van_ban_den WHERE trang_thai=0 AND id<>$id AND bo_dau(so_ky_hieu)=$s AND ngay_van_ban=$d AND bo_dau(co_quan_ban_hanh)=$c LIMIT 20",
+        return Query<VanBanBase>("SELECT * FROM van_ban_den WHERE trang_thai=0 AND id<>$id AND khoa_so_ky_hieu=$s AND ngay_van_ban=$d AND bo_dau(co_quan_ban_hanh)=$c LIMIT 20",
             MapDen, null, ("$id", v.Id), ("$s", skh), ("$d", D(v.NgayVanBan)), ("$c", TextUtil.SearchKey(den.CoQuanBanHanh)));
     });
 

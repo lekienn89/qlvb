@@ -31,6 +31,11 @@ jobs:
       - name: Unit tests
         run: dotnet test tests/Qlvb.Tests -c Release --no-build --logger "trx;LogFileName=unit.trx" --results-directory artifacts/test-results
 
+      - name: Performance test (20.000 văn bản giả lập)
+        run: dotnet test tests/Qlvb.Tests -c Release --no-build --filter "FullyQualifiedName~HieuNang" --logger "console;verbosity=detailed"
+        env:
+          QLVB_PERF: "20000"
+
       - name: Publish (single-file, self-contained, win-x64)
         id: publish
         run: dotnet publish src/Qlvb.App -c Release -o artifacts/publish
