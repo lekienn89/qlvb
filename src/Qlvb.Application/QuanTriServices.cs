@@ -162,6 +162,7 @@ public sealed class CauHinhService(IDataStore store)
     public void SetInt(string key, int value) => Set(key, value.ToString(System.Globalization.CultureInfo.InvariantCulture));
 
     public bool ChoPhepXuatMat => GetBool(ConfigKeys.ChoPhepXuatMat, false);
+    public bool ChanChupManHinh => GetBool(ConfigKeys.ChanChupManHinh, false);
 }
 
 public sealed class TraCuuService(IDataStore store)

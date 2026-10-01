@@ -14,6 +14,7 @@ public static class ConfigKeys
     public const string TuSaoLuuKhiThoat = "tu_sao_luu_khi_thoat";
     public const string LanSaoLuuCuoi = "lan_sao_luu_cuoi";
     public const string DaCoDuLieuMau = "da_co_du_lieu_mau";
+    public const string ChanChupManHinh = "chan_chup_man_hinh";
 
     public const string MacDinhMauSoKyHieu = "{so}/{viet_tat}-{ky_hieu_co_quan}";
     public const string MacDinhMauCongVan = "{so}/{ky_hieu_co_quan}";
@@ -33,5 +34,6 @@ public static class ConfigKeys
         [InKyHieuDoMat] = "In ký hiệu độ mật A/B/C",
         [SoBanSaoLuuGiuLai] = "Số bản sao lưu tự động giữ lại",
         [TuSaoLuuKhiThoat] = "Tự sao lưu khi thoát",
+        [ChanChupManHinh] = "Chặn chụp màn hình",
     };
 }

@@ -33,6 +33,8 @@ Name: "desktopicon"; Description: "Tạo biểu tượng trên màn hình nền 
 
 [Files]
 Source: "..\artifacts\publish\{#AppExe}"; DestDir: "{app}"; Flags: ignoreversion
+; Thư viện gốc (SQLite mã hóa, WPF) nằm cạnh exe để không phải giải nén ra thư mục tạm khi chạy.
+Source: "..\artifacts\publish\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs skipifsourcedoesntexist
 Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 Source: "..\NOTICE.md"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist

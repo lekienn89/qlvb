@@ -46,7 +46,6 @@ public partial class DanhSachPage : UserControl, IPage
             LoadYears();
             LoadDoMat();
         }
-        MnuHardDelete.Visibility = DocActions.AdminMode ? Visibility.Visible : Visibility.Collapsed;
         Load();
     }
 
@@ -222,7 +221,7 @@ public partial class DanhSachPage : UserControl, IPage
 
     private void MnuHardDelete_Click(object sender, RoutedEventArgs e)
     {
-        if (RequireSelected() is { } v) DocActions.HardDelete(Owner, v);
+        if (RequireSelected() is { } v) DocActions.Delete(Owner, v);
     }
 
     private void MnuCopy_Click(object sender, RoutedEventArgs e)
@@ -290,6 +289,7 @@ public partial class DanhSachPage : UserControl, IPage
             InitialDirectory = Ctx.Paths.Export,
         };
         if (sfd.ShowDialog(Owner) != true) return;
+        if (!SafeLocation.Check(sfd.FileName, "tệp xuất")) return;
         var fmt = sfd.FilterIndex == 2 ? ExportFormat.Csv : ExportFormat.Xlsx;
         using (new WaitCursor())
             Ctx.Export.ExportDocuments(items, DocActions.FormFor(_loai, criteria.Nam), fmt, sfd.FileName, Ctx.InKyHieuDoMat);

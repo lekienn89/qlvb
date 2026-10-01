@@ -40,6 +40,9 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Directory.CreateDirectory(work);
         var copy = Path.Combine(work, "QLVB.exe");
         File.Copy(exe, copy);
+        foreach (var dll in Directory.GetFiles(Path.GetDirectoryName(exe)!, "*.dll")) File.Copy(dll, Path.Combine(work, Path.GetFileName(dll)));
+        var extractDir = Path.Combine(Path.GetTempPath(), ".net", "QLVB");
+        if (Directory.Exists(extractDir)) Directory.Delete(extractDir, true);
         File.WriteAllText(Path.Combine(work, "portable.flag"), "test");
 
         _app = Application.Launch(copy);
@@ -223,6 +226,24 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Assert.Null(FindRow(main, "[MẪU]"));
         Shot(main, "sau-khi-xoa-du-lieu-mau");
 
+        // Xóa văn bản nhập sai (cần xác nhận, mật khẩu, lý do); đây là số cuối nên số được cấp lại
+        WaitRow(main, "99/UI-TEST").AsGridRow().Select();
+        Click(main, "Xóa văn bản nhập sai…");
+        AnswerConfirm(true);
+        WaitWindow("Xác nhận mật khẩu", exact: true);
+        Thread.Sleep(400);
+        Keyboard.Type(NewPassword);
+        Keyboard.Press(VirtualKeyShort.RETURN);
+        var lyDoXoa = WaitWindow("Lý do xóa", exact: true);
+        Thread.Sleep(400);
+        Keyboard.Type("Nhap sai ngay khi kiem thu");
+        Click(lyDoXoa, "Xóa văn bản");
+        var daXoa = WaitWindow("Quản lý văn bản đi – đến", exact: true);
+        Assert.Contains(daXoa.FindAllDescendants(c => c.ByControlType(ControlType.Text)), t => t.Name.Contains("được cấp cho văn bản nhập tiếp theo"));
+        DismissMessage();
+        Assert.True(SpinWait(() => FindRow(main, "99/UI-TEST") == null, Wait), "Văn bản chưa bị xóa");
+        AssertNoErrorDialog();
+
         // Khóa màn hình
         main.Focus();
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_L);
@@ -251,6 +272,8 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Assert.DoesNotContain(logs, l => l.Contains("[ERR]") || l.Contains("[FTL]"));
         Assert.DoesNotContain(logs, l => l.Contains(Password) || l.Contains(NewPassword) || l.Contains(code));
         Assert.NotEmpty(Directory.GetFiles(Path.Combine(work, "Data", "Backup"), "*_nhanh.qlvbak"));
+        // Không giải nén thư viện ra thư mục tạm của Windows khi chạy
+        Assert.False(Directory.Exists(extractDir), "Phần mềm đã giải nén tệp vào " + extractDir);
     }
 
     // ------------------------------------------------------------------ tiện ích

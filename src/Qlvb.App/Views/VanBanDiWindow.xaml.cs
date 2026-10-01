@@ -101,7 +101,7 @@ public partial class VanBanDiWindow : Window
             var nam = FormKit.ToDate(DpNgayDangKy)?.Year ?? Ctx.Clock.Today.Year;
             var so = Ctx.VanBan.SoDuKien(LoaiSo.Di, nam, BoDem.SoThuTu);
             TxtSoThuTu.Text = $"{TextUtil.So2(so)} (dự kiến, cấp khi lưu)";
-            TxtSubHeader.Text = $"Sổ đăng ký bí mật nhà nước đi năm {nam}. Số thứ tự do phần mềm cấp tự động, không trùng, không cấp lại.";
+            TxtSubHeader.Text = $"Sổ đăng ký bí mật nhà nước đi năm {nam}. Số thứ tự do phần mềm cấp tự động, không trùng.";
         }
         else
         {

@@ -41,10 +41,9 @@ public sealed class AppPaths
             Directory.CreateDirectory(d);
     }
 
-    /// <summary>Cấm đặt dữ liệu trong thư mục tạm của hệ thống.</summary>
-    public bool IsInTempFolder()
-    {
-        var temp = Path.GetFullPath(Path.GetTempPath()).TrimEnd(Path.DirectorySeparatorChar);
-        return Root.StartsWith(temp + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
-    }
+    /// <summary>Chỉ tài khoản đang dùng (cùng SYSTEM, Administrators) truy cập được thư mục dữ liệu. true nếu đã áp dụng.</summary>
+    public bool RestrictAccess() => Security.LocationPolicy.RestrictToCurrentUser(Root);
+
+    /// <summary>Cấm đặt dữ liệu trong thư mục tạm, thư mục dùng chung hoặc thư mục đồng bộ đám mây. null nếu hợp lệ.</summary>
+    public string? UnsafeLocationReason() => Security.LocationPolicy.Reason(Root);
 }

@@ -24,7 +24,7 @@ public sealed class TroGiupPage : UserControl, IPage
         ]),
         ("Đăng ký văn bản", [
             "Văn bản đi: đăng ký trước khi phát hành. Văn bản đến: đăng ký sau khi tiếp nhận (Điều 6 Nghị định 63/2026/NĐ-CP).",
-            "Số thứ tự do phần mềm cấp tự động theo năm, tiếp nối giữa các quyển; không bao giờ cấp lại số đã dùng, kể cả khi hủy/xóa.",
+            "Số thứ tự do phần mềm cấp tự động theo năm, tiếp nối giữa các quyển. Hủy văn bản thì số vẫn giữ; chỉ khi xóa văn bản mang số cuối cùng thì số đó mới được cấp lại.",
             "Chọn độ mật TUYỆT MẬT: ô trích yếu bị khóa, nội dung đã nhập bị xóa; cột tên loại và trích yếu trên sổ chỉ ghi tên loại.",
             "Nút + cạnh ô danh mục để thêm nhanh. Nút \"Sao chép từ văn bản trước\" chỉ chép các thông tin lặp lại; luôn kiểm tra trước khi lưu.",
             "Phần mềm cảnh báo khi nghi trùng số, ký hiệu; người dùng quyết định có lưu hay không.",
@@ -32,7 +32,7 @@ public sealed class TroGiupPage : UserControl, IPage
         ("Sửa, hủy, khôi phục", [
             "Sửa: hiện bảng so sánh giá trị cũ/mới để xác nhận; mọi thay đổi ghi vào nhật ký. Không đổi được số thứ tự, số đến, năm.",
             "Hủy: cần lý do; văn bản vẫn nằm trên sổ với ghi chú \"ĐÃ HỦY\". Có thể khôi phục.",
-            "Xóa vĩnh viễn: chỉ trong chế độ quản trị (Cấu hình), chỉ cho văn bản đã hủy; không khuyến nghị.",
+            "Xóa văn bản nhập sai: chuột phải → Xóa văn bản nhập sai… (cần mật khẩu và lý do, ghi nhật ký). Xóa văn bản mang số cuối cùng của năm thì số đó được cấp lại; xóa văn bản ở giữa thì số đó để trống.",
             "Sổ đã khóa thì không thêm, sửa, hủy văn bản được (Danh mục → Sổ đăng ký).",
         ]),
         ("In và xuất", [

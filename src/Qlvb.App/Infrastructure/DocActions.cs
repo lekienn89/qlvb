@@ -21,9 +21,6 @@ public sealed class DocRow
 /// <summary>Thao tác trên một văn bản, dùng chung cho danh sách và tra cứu.</summary>
 public static class DocActions
 {
-    /// <summary>Cho phép xóa vĩnh viễn (chế độ quản trị, bật trong Cấu hình, chỉ trong phiên hiện tại).</summary>
-    public static bool AdminMode { get; set; }
-
     public static bool New(Window owner, LoaiSo loai)
     {
         Window w = loai == LoaiSo.Di ? new VanBanDiWindow() : new VanBanDenWindow();
@@ -71,18 +68,34 @@ public static class DocActions
         return Dlg.Try(() => Ctx.VanBan.KhoiPhuc(v.Loai, v.Id, v.PhienBan), "khôi phục văn bản") && Changed();
     }
 
-    public static bool HardDelete(Window owner, VanBanBase v)
+    /// <summary>Xóa văn bản nhập sai: hỏi xác nhận, mật khẩu và lý do. Số cuối cùng của năm được cấp lại.</summary>
+    public static bool Delete(Window owner, VanBanBase v)
     {
-        if (!AdminMode) { Dlg.Info("Xóa vĩnh viễn chỉ dùng trong chế độ quản trị (Cấu hình → Chế độ quản trị)."); return false; }
-        if (!v.DaHuy && !v.LaDuLieuMau) { Dlg.Warn("Chỉ xóa vĩnh viễn được văn bản đã hủy. Hãy hủy văn bản trước."); return false; }
-        if (!Dlg.Confirm($"XÓA VĨNH VIỄN văn bản số {TextUtil.So2(v.SoThuTu)}/{v.Nam}?\n\n" +
-                         "• Bản ghi bị xóa khỏi cơ sở dữ liệu và KHÔNG khôi phục được (trừ khi khôi phục cả bản sao lưu).\n" +
-                         "• Số thứ tự của văn bản này sẽ KHÔNG được cấp lại; sổ in ra sẽ thiếu số này.\n" +
-                         "• Thông thường chỉ nên HỦY (giữ lại trên sổ) theo quy định quản lý sổ.\n\nTiếp tục?", danger: true))
+        var so = Ctx.Store.GetSoDangKy(v.SoDangKyId);
+        if (so is { DaKhoa: true })
+        {
+            Dlg.Info($"{so.TenHienThi}: sổ đã khóa nên không xóa được văn bản. Mở khóa sổ trong Danh mục → Sổ đăng ký nếu cần.");
             return false;
-        var lyDo = InputDialog.AskText(owner, "Lý do xóa vĩnh viễn", "Nhập lý do (ghi vào nhật ký):", "", 3, 500, okText: "Xóa vĩnh viễn");
+        }
+        var soCuoi = Ctx.VanBan.LaSoCuoi(v);
+        var stt = TextUtil.So2(v.SoThuTu);
+        if (!Dlg.Confirm($"Xóa văn bản số {stt}/{v.Nam} ({v.SoKyHieu}) khỏi sổ?\n\n" +
+                         "• Dùng khi văn bản bị nhập sai (sai số, sai ngày, sai nội dung…). Nếu chỉ sai một vài thông tin, có thể Sửa thay vì xóa.\n" +
+                         "• Văn bản bị xóa hẳn, không khôi phục được (trừ khi khôi phục cả bản sao lưu).\n" +
+                         (soCuoi
+                             ? $"• Đây là văn bản mang số cuối cùng của năm {v.Nam}: số {stt} sẽ được cấp lại cho văn bản nhập tiếp theo.\n"
+                             : $"• Số {stt} sẽ để trống trên sổ (không cấp lại) vì đã có văn bản số lớn hơn.\n") +
+                         "• Việc xóa được ghi vào nhật ký kèm lý do.\n\nTiếp tục?", danger: true))
+            return false;
+        var pw = InputDialog.AskPassword(owner, "Xác nhận mật khẩu", "Xóa văn bản là thao tác quan trọng. Nhập mật khẩu để xác nhận:");
+        if (pw == null) return false;
+        if (!Ctx.Session.Keys.Verify(pw)) { Dlg.Warn("Mật khẩu không đúng."); return false; }
+        var lyDo = InputDialog.AskText(owner, "Lý do xóa", "Lý do xóa (bắt buộc, ghi vào nhật ký):", "", 3, 500, multiline: true, okText: "Xóa văn bản");
         if (lyDo == null) return false;
-        return Dlg.Try(() => Ctx.VanBan.XoaVinhVien(v.Loai, v.Id, lyDo), "xóa vĩnh viễn") && Changed();
+        var thuHoi = false;
+        if (!Dlg.Try(() => thuHoi = Ctx.VanBan.XoaVinhVien(v.Loai, v.Id, lyDo), "xóa văn bản")) return false;
+        Dlg.Info(thuHoi ? $"Đã xóa. Số {stt} sẽ được cấp cho văn bản nhập tiếp theo." : $"Đã xóa. Số {stt} để trống trên sổ.");
+        return Changed();
     }
 
     private static bool Changed()

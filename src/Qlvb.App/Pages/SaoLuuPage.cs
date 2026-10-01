@@ -76,15 +76,6 @@ public sealed class SaoLuuPage : UserControl, IPage
         }
     }
 
-    private static readonly string[] RiskyFolders =
-    [
-        Environment.GetFolderPath(Environment.SpecialFolder.CommonDocuments),
-        Environment.GetFolderPath(Environment.SpecialFolder.CommonDesktopDirectory),
-        Environment.GetEnvironmentVariable("OneDrive") ?? "",
-        Environment.GetEnvironmentVariable("PUBLIC") ?? "",
-        System.IO.Path.GetTempPath(),
-    ];
-
     private void SaveAs()
     {
         var sfd = new SaveFileDialog
@@ -94,12 +85,7 @@ public sealed class SaoLuuPage : UserControl, IPage
             FileName = Ctx.Backup.DefaultFileName(BackupKind.ThuCong),
         };
         if (sfd.ShowDialog(Window.GetWindow(this)) != true) return;
-        var full = System.IO.Path.GetFullPath(sfd.FileName);
-        if (RiskyFolders.Any(f => f.Length > 3 && full.StartsWith(f, StringComparison.OrdinalIgnoreCase)) || full.StartsWith(@"\\", StringComparison.Ordinal))
-        {
-            if (!Dlg.Confirm("Vị trí đã chọn là thư mục dùng chung, thư mục tạm, thư mục đồng bộ đám mây hoặc ổ mạng. Không nên lưu bản sao lưu dữ liệu mật ở đây.\n\nVẫn lưu?", danger: true))
-                return;
-        }
+        if (!SafeLocation.Check(sfd.FileName, "bản sao lưu")) return;
         if (Dlg.Try(() =>
             {
                 using (new WaitCursor()) Ctx.Backup.Create(BackupKind.ThuCong, sfd.FileName);

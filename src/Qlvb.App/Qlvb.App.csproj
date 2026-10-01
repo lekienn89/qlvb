@@ -10,7 +10,8 @@
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- Không nhúng thư viện gốc vào exe: nếu nhúng, .NET phải giải nén chúng ra %TEMP%\.net khi chạy. Các DLL nằm cạnh QLVB.exe. -->
+    <IncludeNativeLibrariesForSelfExtract>false</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <DebugType>embedded</DebugType>
     <InvariantGlobalization>false</InvariantGlobalization>

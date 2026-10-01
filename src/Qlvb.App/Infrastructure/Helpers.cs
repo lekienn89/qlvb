@@ -9,6 +9,8 @@ namespace Qlvb.App.Infrastructure;
 
 public sealed class WaitCursor : IDisposable
 {
+    // Con trỏ cũ là con trỏ dùng chung của hệ thống (Cursors.*): chỉ đặt lại, không được giải phóng.
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213", Justification = "Con trỏ hệ thống dùng chung, không thuộc sở hữu của lớp này.")]
     private readonly Cursor? _old = Mouse.OverrideCursor;
     public WaitCursor() => Mouse.OverrideCursor = Cursors.Wait;
     public void Dispose() => Mouse.OverrideCursor = _old;

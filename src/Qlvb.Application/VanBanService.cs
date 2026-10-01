@@ -93,7 +93,7 @@ public sealed class VanBanService(IDataStore store, IClock clock, ICurrentUser u
         {
             VanBanDi di => VanBanValidator.Validate(di, doMat, clock.Today),
             VanBanDen den => VanBanValidator.Validate(den, doMat, clock.Today),
-            _ => throw new ArgumentException(nameof(v)),
+            _ => throw new ArgumentException("Loại văn bản không được hỗ trợ.", nameof(v)),
         };
         if (doMat is { DangDung: false } && v.Id == 0)
             result.Error(nameof(v.DoMatId), $"Độ mật \"{doMat.Ten}\" đã ngừng sử dụng.");
@@ -196,7 +196,7 @@ public sealed class VanBanService(IDataStore store, IClock clock, ICurrentUser u
                 $"Đăng ký số {TextUtil.So2(x.SoThuTu)}/{x.Nam}, ký hiệu {x.SoKyHieu}, độ mật {x.DoMatTen}")),
             VanBanDen den => store.InsertDen(den, x => new AuditEntry("Tạo văn bản đến", "van_ban_den", x.Id,
                 $"Đăng ký số {TextUtil.So2(x.SoThuTu)}/{x.Nam}, số đến {x.SoDen}, ký hiệu {x.SoKyHieu}, độ mật {x.DoMatTen}")),
-            _ => throw new ArgumentException(nameof(v)),
+            _ => throw new ArgumentException("Loại văn bản không được hỗ trợ.", nameof(v)),
         };
     }
 
@@ -296,18 +296,28 @@ public sealed class VanBanService(IDataStore store, IClock clock, ICurrentUser u
                 $"Khôi phục số {TextUtil.So2(cu.SoThuTu)}/{cu.Nam} (bỏ trạng thái hủy)"));
     }
 
-    /// <summary>Xóa vật lý – chỉ dùng trong chế độ quản trị. Số đã cấp KHÔNG được cấp lại.</summary>
-    public void XoaVinhVien(LoaiSo loai, long id, string lyDo)
+    /// <summary>
+    /// Xóa văn bản nhập sai (xóa hẳn khỏi sổ, có lý do, ghi nhật ký). Nếu là văn bản mang số lớn nhất đã cấp trong năm
+    /// thì số đó được cấp lại cho văn bản nhập tiếp theo; xóa văn bản ở giữa thì số đó để trống.
+    /// Trả về true khi số được cấp lại.
+    /// </summary>
+    public bool XoaVinhVien(LoaiSo loai, long id, string lyDo)
     {
         lyDo = TextUtil.Clean(lyDo) ?? "";
         if (lyDo.Length < 3) throw new BusinessException("Vui lòng nhập lý do xóa.", "LyDo");
+        if (lyDo.Length > 500) throw new BusinessException("Lý do xóa quá dài (tối đa 500 ký tự).", "LyDo");
         var cu = Get(loai, id) ?? throw new BusinessException("Văn bản không còn tồn tại.");
         KiemTraSoKhoa(cu.SoDangKyId);
-        if (!cu.DaHuy && !cu.LaDuLieuMau)
-            throw new BusinessException("Chỉ được xóa vĩnh viễn văn bản đã hủy.");
-        store.HardDelete(loai, id, new AuditEntry(loai == LoaiSo.Di ? "Xóa vĩnh viễn văn bản đi" : "Xóa vĩnh viễn văn bản đến",
-            BangCua(loai), id, $"Xóa vĩnh viễn số {TextUtil.So2(cu.SoThuTu)}/{cu.Nam}, ký hiệu {cu.SoKyHieu}. Lý do: {lyDo}"));
+        var so = $"{TextUtil.So2(cu.SoThuTu)}/{cu.Nam}";
+        return store.HardDelete(loai, id, thuHoi => new AuditEntry(loai == LoaiSo.Di ? "Xóa văn bản đi" : "Xóa văn bản đến",
+            BangCua(loai), id,
+            $"Xóa số {so}, ký hiệu {cu.SoKyHieu}{(cu.DaHuy ? " (đã hủy trước đó)" : "")}. " +
+            (thuHoi ? $"Số {TextUtil.So2(cu.SoThuTu)} được cấp lại cho văn bản tiếp theo. " : $"Số {TextUtil.So2(cu.SoThuTu)} để trống, không cấp lại. ") +
+            $"Lý do: {lyDo}"));
     }
+
+    /// <summary>Văn bản có đang mang số lớn nhất đã cấp trong năm không (xóa thì số được cấp lại).</summary>
+    public bool LaSoCuoi(VanBanBase v) => store.PeekNextNumber(v.Loai, v.Nam, BoDem.SoThuTu) == v.SoThuTu + 1;
 
     public VanBanBase? Get(LoaiSo loai, long id) => loai == LoaiSo.Di ? store.GetDi(id) : store.GetDen(id);
 

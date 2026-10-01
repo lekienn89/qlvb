@@ -48,6 +48,7 @@ public sealed class IdleLock : IDisposable
         try
         {
             Ctx.Session.LockScreen();
+            ClipboardGuard.ClearIfOurs();
             var hidden = new List<(Window W, object? Content)>();
             foreach (var w in System.Windows.Application.Current.Windows.OfType<Window>().ToList())
             {

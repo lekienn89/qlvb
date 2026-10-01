@@ -209,11 +209,23 @@ public sealed partial class SqliteDataStore
         Exec($"UPDATE {Bang(loai)} SET search_key=$k WHERE id=$id", tx, ("$k", SearchKeyOf(v)), ("$id", id));
     }
 
-    public void HardDelete(LoaiSo loai, long id, AuditEntry audit) => Write(tx =>
+    public bool HardDelete(LoaiSo loai, long id, Func<bool, AuditEntry> audit) => Write(tx =>
     {
+        var row = Query($"SELECT nam, so_thu_tu{(loai == LoaiSo.Den ? ", so_den" : "")} FROM {Bang(loai)} WHERE id=$id",
+            r => (Nam: r.GetInt32(0), Stt: r.GetInt32(1), SoDen: loai == LoaiSo.Den ? r.GetInt32(2) : 0), tx, ("$id", id)).FirstOrDefault();
+        if (row.Nam == 0) throw new BusinessException("Văn bản không còn tồn tại.");
         Exec($"DELETE FROM {Bang(loai)} WHERE id=$id", tx, ("$id", id));
-        Audit(tx, audit);
+        // Chỉ thu hồi số CUỐI CÙNG đã cấp: xóa văn bản ở giữa thì số đó để trống, không làm xáo trộn số của văn bản khác.
+        var thuHoi = Counter(loai, row.Nam, BoDem.SoThuTu, tx) == row.Stt;
+        if (thuHoi) LuiBoDem(loai, row.Nam, BoDem.SoThuTu, row.Stt, tx);
+        if (loai == LoaiSo.Den && Counter(loai, row.Nam, BoDem.SoDen, tx) == row.SoDen) LuiBoDem(loai, row.Nam, BoDem.SoDen, row.SoDen, tx);
+        Audit(tx, audit(thuHoi));
+        return thuHoi;
     });
+
+    private void LuiBoDem(LoaiSo loai, int nam, string ten, int so, SqliteTransaction tx) =>
+        Exec("UPDATE bo_dem SET gia_tri=$v WHERE loai=$l AND nam=$n AND ten=$t AND gia_tri=$so", tx,
+            ("$v", so - 1), ("$l", (int)loai), ("$n", nam), ("$t", ten), ("$so", so));
 
     // ================================================================== tìm kiếm
     private static readonly Dictionary<string, string> SortDi = new()

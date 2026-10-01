@@ -110,6 +110,7 @@ public partial class BaoCaoPage : UserControl, IPage
             InitialDirectory = Ctx.Paths.Export,
         };
         if (sfd.ShowDialog(Window.GetWindow(this)) != true) return;
+        if (!SafeLocation.Check(sfd.FileName, "tệp xuất")) return;
         var header = new[] { "STT", (string)ColNhom.Header, "Số lượng", "Tỷ lệ" };
         var rows = _rows.Select(r => (IReadOnlyList<string>)[r.Stt.ToString(), r.Nhom, r.SoLuong.ToString(), r.TyLe]).ToList();
         Ctx.Export.ExportStatistics($"{_title} ({_subtitle})", header, rows, sfd.FilterIndex == 2 ? ExportFormat.Csv : ExportFormat.Xlsx, sfd.FileName);

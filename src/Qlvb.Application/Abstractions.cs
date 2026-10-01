@@ -153,7 +153,9 @@ public interface IDataStore
     void UpdateDi(VanBanDi v, AuditEntry audit);
     void UpdateDen(VanBanDen v, AuditEntry audit);
     void SetTrangThai(LoaiSo loai, long id, TrangThaiBanGhi trangThai, string? lyDo, string nguoi, DateTime luc, int phienBan, AuditEntry audit);
-    void HardDelete(LoaiSo loai, long id, AuditEntry audit);
+    /// <summary>Xóa hẳn bản ghi. Nếu đó là số cuối cùng đã cấp trong năm thì lùi bộ đếm để số này được cấp lại.
+    /// Trả về true khi số được thu hồi; <paramref name="audit"/> nhận kết quả đó để ghi nhật ký.</summary>
+    bool HardDelete(LoaiSo loai, long id, Func<bool, AuditEntry> audit);
     PagedResult<VanBanBase> Search(SearchCriteria c);
     IReadOnlyList<VanBanBase> FindDuplicates(VanBanBase v);
     IReadOnlyList<VanBanBase> Recent(int limit);

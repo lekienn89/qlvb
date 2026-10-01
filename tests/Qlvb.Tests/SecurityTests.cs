@@ -124,4 +124,49 @@ public class SecurityTests
         Assert.DoesNotContain("tác chiến", s);
         Assert.DoesNotContain("0123456789ABCDEF0123456789ABCDEF", s);
     }
+
+    [Fact]
+    public void KeyAppliedAsBytes_OpensDatabasesCreatedWithHexKeyPragma()
+    {
+        // Dữ liệu tạo bởi bản 1.0 (PRAGMA hexkey) phải mở được sau khi đổi sang truyền khóa dạng byte, và ngược lại.
+        Database.InitNative();
+        var dir = Directory.CreateTempSubdirectory("qlvb-key-");
+        try
+        {
+            var key = System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+            var oldDb = Path.Combine(dir.FullName, "cu.db");
+            using (var c = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={oldDb};Pooling=False"))
+            {
+                c.Open();
+                using var cmd = c.CreateCommand();
+                cmd.CommandText = $"PRAGMA cipher='sqlcipher'; PRAGMA legacy=4; PRAGMA hexkey='{Convert.ToHexString(key)}'; CREATE TABLE t(x); INSERT INTO t VALUES(42);";
+                cmd.ExecuteNonQuery();
+            }
+            using (var db = Database.Open(oldDb, key))
+            using (var cmd = db.Connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT x FROM t";
+                Assert.Equal(42L, cmd.ExecuteScalar());
+            }
+            var wrong = (byte[])key.Clone();
+            wrong[0] ^= 1;
+            Assert.Throws<DatabaseOpenException>(() => Database.Open(oldDb, wrong).Dispose());
+        }
+        finally { dir.Delete(true); }
+    }
+
+    [Fact]
+    public void SessionKey_CallerCopyWipedAfterLogin_AndSessionKeyWipedOnLogout()
+    {
+        using var env = new TestEnv();
+        env.Session.Logout();
+        var key = env.Session.Keys.Unlock(TestEnv.Password);
+        var copy = (byte[])key.Clone();
+        env.Session.Open(key, create: false);
+        Assert.All(key, b => Assert.Equal(0, b));
+        var held = env.Session.RequireKey();
+        Assert.Equal(copy, held);
+        env.Session.Logout();
+        Assert.All(held, b => Assert.Equal(0, b));
+    }
 }

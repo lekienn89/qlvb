@@ -37,7 +37,7 @@ public class VanBanTests
     }
 
     [Fact]
-    public void Numbers_NeverReused_AfterCancelOrHardDelete()
+    public void Numbers_NotReused_AfterCancel_OrDeletingMiddleDocument()
     {
         using var env = new TestEnv();
         var v1 = env.NewDi();
@@ -45,10 +45,58 @@ public class VanBanTests
         var v2 = env.NewDi();
         env.VanBan.ThemMoi(v2);
         env.VanBan.Huy(LoaiSo.Di, v2.Id, "Nhập nhầm", v2.PhienBan);
-        env.VanBan.XoaVinhVien(LoaiSo.Di, v2.Id, "Xóa thử");
         var v3 = env.NewDi();
         env.VanBan.ThemMoi(v3);
         Assert.Equal(3, v3.SoThuTu);
+        Assert.False(env.VanBan.XoaVinhVien(LoaiSo.Di, v2.Id, "Xóa thử"));
+        var v4 = env.NewDi();
+        env.VanBan.ThemMoi(v4);
+        Assert.Equal(4, v4.SoThuTu);
+        Assert.Contains(env.Store.ListAudit(new AuditFilter { Limit = 5 }), a => a.MoTa.Contains("để trống"));
+    }
+
+    [Fact]
+    public void DeletingLastDocument_ReusesItsNumber_AndAudits()
+    {
+        using var env = new TestEnv();
+        env.VanBan.ThemMoi(env.NewDi());
+        var sai = env.NewDi();
+        env.VanBan.ThemMoi(sai);
+        Assert.True(env.VanBan.LaSoCuoi(sai));
+        Assert.True(env.VanBan.XoaVinhVien(LoaiSo.Di, sai.Id, "Nhập sai ngày"));
+        Assert.Null(env.Store.GetDi(sai.Id));
+        Assert.Equal(2, env.VanBan.SoDuKien(LoaiSo.Di, 2026, BoDem.SoThuTu));
+        var dung = env.NewDi();
+        env.VanBan.ThemMoi(dung);
+        Assert.Equal(2, dung.SoThuTu);
+        var a = env.Store.ListAudit(new AuditFilter { Limit = 5 }).First(x => x.HanhDong == "Xóa văn bản đi");
+        Assert.Contains("được cấp lại", a.MoTa);
+        Assert.Contains("Nhập sai ngày", a.MoTa);
+        Assert.Null(env.Store.VerifyAuditChain());
+    }
+
+    [Fact]
+    public void DeletingLastIncoming_ReusesNumberAndSoDen()
+    {
+        using var env = new TestEnv();
+        env.VanBan.ThemMoi(env.NewDen());
+        var sai = env.NewDen();
+        env.VanBan.ThemMoi(sai);
+        Assert.True(env.VanBan.XoaVinhVien(LoaiSo.Den, sai.Id, "Nhập trùng"));
+        var lai = env.NewDen();
+        env.VanBan.ThemMoi(lai);
+        Assert.Equal(sai.SoThuTu, lai.SoThuTu);
+        Assert.Equal(sai.SoDen, lai.SoDen);
+    }
+
+    [Fact]
+    public void DeletingLastDocuments_OneAfterAnother_ReusesEach()
+    {
+        using var env = new TestEnv();
+        var vs = Enumerable.Range(0, 3).Select(_ => { var v = env.NewDi(); env.VanBan.ThemMoi(v); return v; }).ToList();
+        Assert.True(env.VanBan.XoaVinhVien(LoaiSo.Di, vs[2].Id, "sai"));
+        Assert.True(env.VanBan.XoaVinhVien(LoaiSo.Di, vs[1].Id, "sai"));
+        Assert.Equal(2, env.VanBan.SoDuKien(LoaiSo.Di, 2026, BoDem.SoThuTu));
     }
 
     [Fact]
@@ -201,12 +249,15 @@ public class VanBanTests
     }
 
     [Fact]
-    public void HardDelete_OnlyCancelled()
+    public void Delete_RequiresReason_AndBlockedInLockedBook()
     {
         using var env = new TestEnv();
         var v = env.NewDi();
         env.VanBan.ThemMoi(v);
+        Assert.Throws<BusinessException>(() => env.VanBan.XoaVinhVien(LoaiSo.Di, v.Id, " "));
+        env.So.Khoa(env.Store.GetSoDangKy(v.SoDangKyId)!);
         Assert.Throws<BusinessException>(() => env.VanBan.XoaVinhVien(LoaiSo.Di, v.Id, "thử xóa"));
+        Assert.NotNull(env.Store.GetDi(v.Id));
     }
 
     [Fact]

@@ -46,6 +46,10 @@ public sealed class BackupService(AppSession session)
     private const string KeyEntry = "qlvb.key";
     private const string ManifestEntry = "manifest.json";
     private static readonly JsonSerializerOptions JsonOpts = new() { WriteIndented = true };
+    // Giới hạn khi đọc tệp sao lưu do người dùng chọn: chặn tệp giả mạo/"bom nén" làm đầy ổ đĩa hoặc treo máy.
+    private const long MaxSmallEntry = 64 * 1024;
+    internal const long MaxDatabaseEntry = 4L * 1024 * 1024 * 1024;
+    private const int MaxCompressionRatio = 200;
 
     private string WorkDir()
     {
@@ -172,12 +176,19 @@ public sealed class BackupService(AppSession session)
         try
         {
             using var zip = ZipFile.OpenRead(path);
+            if (zip.Entries.Count != 3 || zip.Entries.Any(e => e.FullName is not (ManifestEntry or DbEntry or KeyEntry)))
+                throw new InvalidDataException("Không phải tệp sao lưu của phần mềm (cấu trúc tệp không đúng).");
             var me = zip.GetEntry(ManifestEntry) ?? throw new InvalidDataException("Không phải tệp sao lưu của phần mềm.");
+            if (me.Length > MaxSmallEntry) throw new InvalidDataException("Không phải tệp sao lưu của phần mềm (thông tin mô tả quá lớn).");
             BackupManifest m;
             using (var s = me.Open()) m = JsonSerializer.Deserialize<BackupManifest>(s) ?? throw new InvalidDataException("Tệp sao lưu hỏng.");
             if (m.App != "QLVB" || m.Format != 1) throw new InvalidDataException("Không phải tệp sao lưu của phần mềm hoặc định dạng không được hỗ trợ.");
             var de = zip.GetEntry(DbEntry) ?? throw new InvalidDataException("Tệp sao lưu thiếu dữ liệu.");
             var ke = zip.GetEntry(KeyEntry) ?? throw new InvalidDataException("Tệp sao lưu thiếu tệp khóa.");
+            if (ke.Length > MaxSmallEntry) throw new InvalidDataException("Tệp sao lưu bị hỏng (tệp khóa không đúng định dạng).");
+            if (de.Length > MaxDatabaseEntry || (m.DatabaseSize > 0 && de.Length != m.DatabaseSize)
+                || (de.CompressedLength > 0 && de.Length / de.CompressedLength > MaxCompressionRatio))
+                throw new InvalidDataException("Tệp sao lưu bị hỏng hoặc bị sửa đổi (kích thước dữ liệu không hợp lệ).");
             using (var s = de.Open())
                 if (!string.Equals(Sha256(s), m.DatabaseSha256, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidDataException("Tệp sao lưu bị hỏng (mã kiểm tra dữ liệu không khớp).");
@@ -203,6 +214,7 @@ public sealed class BackupService(AppSession session)
         if (m.SchemaVersion > Migrator.LatestVersion)
             throw new InvalidDataException("Bản sao lưu được tạo bởi phiên bản phần mềm mới hơn. Hãy cập nhật phần mềm trước khi khôi phục.");
         var work = WorkDir();
+        KiemTraChoTrong(work, m.DatabaseSize);
         var tmpDb = Path.Combine(work, Guid.NewGuid().ToString("N") + ".db");
         string keyJson;
         byte[]? key = null;
@@ -240,6 +252,18 @@ public sealed class BackupService(AppSession session)
             if (key != null) CryptographicOperations.ZeroMemory(key);
             TryDelete(tmpDb);
         }
+    }
+
+    /// <summary>Cần chỗ cho bản giải nén tạm, bản an toàn của dữ liệu hiện tại và dữ liệu khôi phục.</summary>
+    private void KiemTraChoTrong(string dir, long dbSize)
+    {
+        long free;
+        try { free = new DriveInfo(Path.GetPathRoot(Path.GetFullPath(dir))!).AvailableFreeSpace; }
+        catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException) { return; }
+        var current = File.Exists(session.Paths.DatabaseFile) ? new FileInfo(session.Paths.DatabaseFile).Length : 0;
+        var need = 2 * dbSize + current + 50L * 1024 * 1024;
+        if (free < need)
+            throw new IOException($"Ổ đĩa không đủ chỗ trống để khôi phục (cần khoảng {need / 1048576.0:N0} MB, còn {free / 1048576.0:N0} MB). Hãy giải phóng dung lượng rồi thử lại.");
     }
 
     /// <summary>Khi chưa đăng nhập được (dữ liệu hỏng/mất khóa): sao chép nguyên trạng tệp hiện có trước khi ghi đè.</summary>

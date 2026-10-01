@@ -71,10 +71,18 @@ public sealed class Database : IDisposable
     {
         if (key.Length != 32) throw new ArgumentException("Khóa phải dài 256 bit.");
         Exec(c, "PRAGMA cipher = 'sqlcipher'; PRAGMA legacy = 4;");
-        using var cmd = c.CreateCommand();
-        // PRAGMA không nhận tham số; khóa chỉ gồm ký tự hex nên không có nguy cơ chèn lệnh.
-        cmd.CommandText = $"PRAGMA hexkey = '{Convert.ToHexString(key)}';";
-        cmd.ExecuteNonQuery();
+        // Truyền thẳng 32 byte khóa xuống thư viện mã hóa (tương đương PRAGMA hexkey), không tạo chuỗi hex
+        // trong bộ nhớ quản lý: chuỗi không xóa được và có thể còn lại trong bộ nhớ đến khi bị thu gom.
+        var rc = SQLitePCL.raw.sqlite3_key(c.Handle, key);
+        if (rc != SQLitePCL.raw.SQLITE_OK) throw new DatabaseOpenException($"Không áp dụng được khóa dữ liệu (mã lỗi {rc}).");
+    }
+
+    /// <summary>Cấp mảng khóa ở vùng nhớ cố định (GC không sao chép đi nơi khác), để xóa được triệt để bằng ZeroMemory.</summary>
+    public static byte[] PinnedCopy(ReadOnlySpan<byte> key)
+    {
+        var a = GC.AllocateUninitializedArray<byte>(key.Length, pinned: true);
+        key.CopyTo(a);
+        return a;
     }
 
     private static void RegisterFunctions(SqliteConnection c)

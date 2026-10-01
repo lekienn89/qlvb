@@ -40,6 +40,14 @@ jobs:
         id: publish
         run: dotnet publish src/Qlvb.App -c Release -o artifacts/publish
 
+      - name: Sign application (nếu có chứng thư)
+        shell: pwsh
+        env:
+          SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
+          SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
+          SIGN_TIMESTAMP_URL: ${{ vars.SIGN_TIMESTAMP_URL }}
+        run: ./installer/sign.ps1 -Files artifacts/publish/QLVB.exe
+
       - name: UI smoke tests (FlaUI)
         run: dotnet test tests/Qlvb.UiTests -c Release --logger "trx;LogFileName=ui.trx" --results-directory artifacts/test-results
         env:
@@ -52,7 +60,7 @@ jobs:
         run: |
           $p = "artifacts/portable/QLVB-portable"
           New-Item -ItemType Directory -Force $p | Out-Null
-          Copy-Item artifacts/publish/QLVB.exe $p
+          Copy-Item artifacts/publish/QLVB.exe, artifacts/publish/*.dll -Destination $p
           Set-Content -Path "$p/portable.flag" -Value "Ban portable: du lieu luu trong thu muc Data canh QLVB.exe" -Encoding utf8
           if (Test-Path docs) { Copy-Item -Recurse docs "$p/docs" }
           Copy-Item README.md, LICENSE, NOTICE.md -Destination $p -ErrorAction SilentlyContinue
@@ -66,6 +74,15 @@ jobs:
           if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
           & $iscc /Qp installer/qlvb.iss
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Sign installer (nếu có chứng thư)
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
+        shell: pwsh
+        env:
+          SIGN_PFX_BASE64: ${{ secrets.SIGN_PFX_BASE64 }}
+          SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
+          SIGN_TIMESTAMP_URL: ${{ vars.SIGN_TIMESTAMP_URL }}
+        run: ./installer/sign.ps1 -Files artifacts/installer/*.exe
 
       - name: Checksums
         if: ${{ !cancelled() && steps.publish.outcome == 'success' }}

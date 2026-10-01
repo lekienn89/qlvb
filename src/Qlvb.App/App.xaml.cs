@@ -12,6 +12,7 @@ using Qlvb.Infrastructure.Services;
 
 namespace Qlvb.App;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1001", Justification = "_idle và _single được giải phóng trong OnExit, theo vòng đời ứng dụng WPF.")]
 public partial class App : System.Windows.Application
 {
     private Mutex? _single;
@@ -38,6 +39,8 @@ public partial class App : System.Windows.Application
             }
         }));
 
+        ClipboardGuard.Init();
+        ScreenCaptureGuard.Init();
         DispatcherUnhandledException += OnDispatcherException;
         AppDomain.CurrentDomain.UnhandledException += (_, a) =>
             Ctx.Log.Fatal("Lỗi nghiêm trọng: {Err}", a.ExceptionObject is Exception x ? Logging.Describe(x) : "không rõ");
@@ -50,9 +53,12 @@ public partial class App : System.Windows.Application
         try
         {
             Ctx.Paths = AppPaths.Detect(AppContext.BaseDirectory);
-            if (Ctx.Paths.IsInTempFolder())
+            if (Ctx.Paths.UnsafeLocationReason() is { } why)
             {
-                Dlg.Error("Phần mềm đang chạy từ thư mục tạm (có thể đang mở trực tiếp trong tệp nén). Hãy giải nén bản portable ra một thư mục cố định rồi chạy lại.");
+                Dlg.Error($"Không thể đặt dữ liệu tại {Ctx.Paths.Root}.\n\n{why}\n\n" +
+                          (Ctx.Paths.Portable
+                              ? "Hãy chép (giải nén) bản portable vào một thư mục cố định, riêng của máy (ví dụ D:\\QLVB) rồi chạy lại."
+                              : "Hãy kiểm tra lại cấu hình thư mục người dùng của Windows."));
                 Shutdown(2);
                 return;
             }
@@ -66,8 +72,10 @@ public partial class App : System.Windows.Application
                 return;
             }
             Ctx.Paths.EnsureCreated();
+            var phanQuyen = Ctx.Paths.RestrictAccess();
             Ctx.Log = Logging.Create(Ctx.Paths);
-            Ctx.Log.Information("Khởi động phiên bản {Ver}, chế độ {Mode}", typeof(App).Assembly.GetName().Version, Ctx.Paths.Portable ? "portable" : "cài đặt");
+            Ctx.Log.Information("Khởi động phiên bản {Ver}, chế độ {Mode}, phân quyền thư mục dữ liệu: {Acl}", typeof(App).Assembly.GetName().Version,
+                Ctx.Paths.Portable ? "portable" : "cài đặt", phanQuyen ? "chỉ tài khoản hiện tại" : "giữ nguyên (ổ rời hoặc không hỗ trợ)");
             Ctx.Session = new AppSession(Ctx.Paths);
         }
         catch (Exception ex)
@@ -88,6 +96,7 @@ public partial class App : System.Windows.Application
             Shutdown(0);
             return;
         }
+        ScreenCaptureGuard.Set(Ctx.CauHinh.ChanChupManHinh);
         var main = new MainWindow();
         MainWindow = main;
         _idle?.Dispose();
@@ -105,6 +114,7 @@ public partial class App : System.Windows.Application
         _idle?.Dispose();
         _idle = null;
         foreach (var w in Windows.OfType<Window>().ToList()) w.Close();
+        ClipboardGuard.ClearIfOurs();
         Ctx.Session.Logout();
         LoggingOut = false;
         ShowLogin();
@@ -123,6 +133,7 @@ public partial class App : System.Windows.Application
         try
         {
             _idle?.Dispose();
+            ClipboardGuard.ClearIfOurs();
             Ctx.Session?.Dispose();
             Ctx.Log.Information("Thoát");
             (Ctx.Log as IDisposable)?.Dispose();

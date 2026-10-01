@@ -20,8 +20,8 @@ public sealed class CauHinhPage : UserControl, IPage
     private readonly TextBox _giuLai = new() { Width = 80, HorizontalAlignment = HorizontalAlignment.Left, MaxLength = 3 };
     private readonly CheckBox _exitBackup = new() { Content = "Tự động sao lưu khi thoát phần mềm" };
     private readonly CheckBox _kyHieuDoMat = new() { Content = "Ghi độ mật bằng ký hiệu A, B, C trên danh sách và bản in" };
+    private readonly CheckBox _chanChup = new() { Content = "Chặn chụp màn hình, quay màn hình và chia sẻ màn hình cửa sổ phần mềm" };
     private readonly CheckBox _xuatMat = new() { Content = "Cho phép xuất danh sách văn bản mật ra Excel/CSV (không khuyến nghị)" };
-    private readonly CheckBox _admin = new() { Content = "Bật chế độ quản trị trong phiên này (cho phép xóa vĩnh viễn văn bản đã hủy)" };
     private readonly TextBlock _info = new() { TextWrapping = TextWrapping.Wrap };
     private bool _loading;
 
@@ -62,10 +62,10 @@ public sealed class CauHinhPage : UserControl, IPage
         pw.Children.Add(b1);
         pw.Children.Add(b2);
         sec.Children.Add(pw);
+        sec.Children.Add(_chanChup);
         sec.Children.Add(_xuatMat);
-        sec.Children.Add(_admin);
+        _chanChup.Click += (_, _) => ToggleCapture();
         _xuatMat.Click += (_, _) => ToggleExport();
-        _admin.Click += (_, _) => ToggleAdmin();
 
         var prn = Section(root, "Hiển thị và in");
         prn.Children.Add(_kyHieuDoMat);
@@ -113,7 +113,7 @@ public sealed class CauHinhPage : UserControl, IPage
         _exitBackup.IsChecked = ch.GetBool(ConfigKeys.TuSaoLuuKhiThoat, true);
         _kyHieuDoMat.IsChecked = ch.GetBool(ConfigKeys.InKyHieuDoMat);
         _xuatMat.IsChecked = ch.ChoPhepXuatMat;
-        _admin.IsChecked = DocActions.AdminMode;
+        _chanChup.IsChecked = ch.ChanChupManHinh;
         Preview();
         var forms = string.Join("\n", Ctx.Store.ListBieuMau().Select(b => $"  • {b.Ma} (hiệu lực từ {TextUtil.FormatDate(b.HieuLucTu)}): {b.TieuDe} – {b.CanCu}"));
         _info.Text = $"Phiên bản phần mềm: {typeof(App).Assembly.GetName().Version}\n" +
@@ -173,6 +173,18 @@ public sealed class CauHinhPage : UserControl, IPage
         return false;
     }
 
+    private void ToggleCapture()
+    {
+        var on = _chanChup.IsChecked == true;
+        if (!on && !ConfirmPassword("Tắt chặn chụp màn hình."))
+        {
+            _chanChup.IsChecked = true;
+            return;
+        }
+        if (Dlg.Try(() => Ctx.CauHinh.SetBool(ConfigKeys.ChanChupManHinh, on))) ScreenCaptureGuard.Set(on);
+        else _chanChup.IsChecked = !on;
+    }
+
     private void ToggleExport()
     {
         if (_loading) return;
@@ -186,18 +198,6 @@ public sealed class CauHinhPage : UserControl, IPage
             return;
         }
         Dlg.Try(() => Ctx.CauHinh.SetBool(ConfigKeys.ChoPhepXuatMat, on));
-    }
-
-    private void ToggleAdmin()
-    {
-        var on = _admin.IsChecked == true;
-        if (on && !ConfirmPassword("Bật chế độ quản trị."))
-        {
-            _admin.IsChecked = false;
-            return;
-        }
-        DocActions.AdminMode = on;
-        Ctx.Store.AppendAudit(new AuditEntry(on ? "Bật chế độ quản trị" : "Tắt chế độ quản trị", "he_thong", null, "Chế độ quản trị trong phiên"));
     }
 
     private void ChangePassword()

@@ -148,10 +148,20 @@ public sealed class AppSession : IDisposable
         return code;
     }
 
+    /// <summary>Mở dữ liệu bằng khóa. Khóa được chép sang vùng nhớ cố định; mảng truyền vào bị xóa (ghi 0).</summary>
     internal void Open(byte[] key, bool create, Action<int, int>? beforeUpgrade = null)
     {
         Close();
-        var db = Database.Open(Paths.DatabaseFile, key, create);
+        var pinned = Database.PinnedCopy(key);
+        CryptographicOperations.ZeroMemory(key);
+        key = pinned;
+        Database db;
+        try { db = Database.Open(Paths.DatabaseFile, key, create); }
+        catch
+        {
+            CryptographicOperations.ZeroMemory(key);
+            throw;
+        }
         try
         {
             if (!create)
@@ -174,7 +184,7 @@ public sealed class AppSession : IDisposable
             Store = null;
             Db = null;
             db.Dispose();
-            if (_key != null) CryptographicOperations.ZeroMemory(_key);
+            CryptographicOperations.ZeroMemory(key);
             _key = null;
             throw;
         }
