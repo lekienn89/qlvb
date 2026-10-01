@@ -9,7 +9,8 @@ artifacts/
 .idea/
 TestResults/
 # Không bao giờ đưa dữ liệu thật/khóa vào kho mã
-Data/
+/Data/
+**/publish/Data/
 *.db
 *.db-wal
 *.db-shm
