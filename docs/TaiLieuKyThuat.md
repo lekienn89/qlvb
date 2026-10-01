@@ -159,7 +159,7 @@ Biến `QLVB_PERF=20000` bật kiểm thử hiệu năng với 20.000 văn bản
 5. Tạo tài liệu HTML từ `docs/*.md` (`tools/build-docs.py`).
 6. Đóng gói portable (ZIP) và bộ cài Inno Setup; ký số bộ cài nếu có secret.
 7. Tính `SHA256SUMS.txt`; tải lên artifact `qlvb-windows`.
-8. Khi đẩy tag `v*`: tạo **GitHub Release** kèm bộ cài, bản portable và `SHA256SUMS.txt`.
+8. Trên nhánh `main`, nếu chưa có Release `vX.Y.Z` ứng với phiên bản trong `Directory.Build.props`: tạo tag và **GitHub Release** kèm bộ cài, bản portable và `SHA256SUMS.txt` (nội dung lấy từ mục tương ứng trong `CHANGELOG.md`).
 
 ### 7.3. Ký số
 
@@ -167,7 +167,7 @@ Biến `QLVB_PERF=20000` bật kiểm thử hiệu năng với 20.000 văn bản
 
 ### 7.4. Đánh số phiên bản
 
-Phiên bản đặt ở `Directory.Build.props` (`<Version>`) và `installer/qlvb.iss` (`AppVersion`). Khi phát hành: sửa cả hai, cập nhật `CHANGELOG.md`, gắn tag `vX.Y.Z`.
+Phiên bản đặt ở `Directory.Build.props` (`<Version>`) và `installer/qlvb.iss` (`AppVersion`). Khi phát hành: sửa cả hai, thêm mục mới vào `CHANGELOG.md` rồi đẩy lên `main`; quy trình build tự tạo Release khi mọi kiểm thử đạt.
 
 ## 8. Thư viện bên thứ ba
 
