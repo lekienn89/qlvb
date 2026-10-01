@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Markup;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
 using Qlvb.App.Infrastructure;
 using Qlvb.App.Views;
@@ -25,6 +27,16 @@ public partial class App : System.Windows.Application
         Thread.CurrentThread.CurrentUICulture = vi;
         FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement),
             new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(vi.IetfLanguageTag)));
+
+        // Chữ gợi ý mặc định của DatePicker là tiếng Anh ("Select a date"): thay bằng tiếng Việt.
+        EventManager.RegisterClassHandler(typeof(DatePicker), FrameworkElement.LoadedEvent, new RoutedEventHandler((s, _) =>
+        {
+            if (s is DatePicker dp && dp.Template?.FindName("PART_TextBox", dp) is DatePickerTextBox tb)
+            {
+                tb.ApplyTemplate();
+                if (tb.Template?.FindName("PART_Watermark", tb) is ContentControl wm) wm.Content = "ngày/tháng/năm";
+            }
+        }));
 
         DispatcherUnhandledException += OnDispatcherException;
         AppDomain.CurrentDomain.UnhandledException += (_, a) =>

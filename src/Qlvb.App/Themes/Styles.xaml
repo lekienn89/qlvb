@@ -81,9 +81,13 @@
         <Setter Property="MinHeight" Value="30" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
+    <Style TargetType="DatePickerTextBox">
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Padding" Value="2,0" />
+    </Style>
     <Style TargetType="DatePicker">
         <Setter Property="Margin" Value="0,2" />
-        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Height" Value="30" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
     <Style TargetType="CheckBox">

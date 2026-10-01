@@ -31,7 +31,7 @@ public static class DocGrid
                 Header = $"({c.So}) {c.TieuDe}",
                 Binding = new Binding($"Cells[{i}]"),
                 Width = new DataGridLength(c.DoRong, DataGridLengthUnitType.Star),
-                MinWidth = 50,
+                MinWidth = $"{c.Truong}".StartsWith("Ngay", StringComparison.Ordinal) ? 84 : 50, // dd/MM/yyyy không bị xuống dòng
                 ElementStyle = wrap,
                 CanUserSort = SortKeys.ContainsKey(c.Truong),
                 SortMemberPath = SortKeys.GetValueOrDefault(c.Truong, ""),

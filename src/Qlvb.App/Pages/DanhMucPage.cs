@@ -251,13 +251,13 @@ public sealed class DanhMucPage : UserControl, IPage
             var bar = Bar(("Mở quyển mới…", (_, _) => Open()), ("Khóa sổ", (_, _) => Lock()), ("Mở khóa sổ…", (_, _) => Unlock()));
             SetDock(bar, Dock.Bottom);
             Children.Add(bar);
-            _grid.Columns.Add(Col("Sổ", nameof(Row.Loai), 70));
-            _grid.Columns.Add(Col("Năm", nameof(Row.Nam), 70));
-            _grid.Columns.Add(Col("Quyển", nameof(Row.Quyen), 70));
-            _grid.Columns.Add(Col("Từ số – đến số", nameof(Row.Khoang), 130));
-            _grid.Columns.Add(Col("Từ ngày – đến ngày", nameof(Row.Ngay), 190));
-            _grid.Columns.Add(Col("Số văn bản", nameof(Row.SoVb), 100));
-            _grid.Columns.Add(Col("Trạng thái", nameof(Row.TrangThai), 1, true));
+            _grid.Columns.Add(Col("Sổ", nameof(Row.Loai), 50));
+            _grid.Columns.Add(Col("Năm", nameof(Row.Nam), 60));
+            _grid.Columns.Add(Col("Quyển", nameof(Row.Quyen), 60));
+            _grid.Columns.Add(Col("Từ số – đến số", nameof(Row.Khoang), 110));
+            _grid.Columns.Add(Col("Từ ngày – đến ngày", nameof(Row.Ngay), 180));
+            _grid.Columns.Add(Col("Số văn bản", nameof(Row.SoVb), 90));
+            _grid.Columns.Add(Col("Trạng thái", nameof(Row.TrangThai), 100));
             _grid.Columns.Add(Col("Biểu mẫu", nameof(Row.BieuMau), 1, true));
             Children.Add(_grid);
         }
