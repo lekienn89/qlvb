@@ -48,6 +48,7 @@ public partial class VanBanDenWindow : Window
             if (FormKit.Remember.TryGetValue("den.donvi", out var dv)) CbDonViNhan.Text = dv;
         }
         if (_isNew && copyFrom != null) CopyFrom(copyFrom);
+        _banDau = DauVet();
         Loaded += (_, _) => (_isNew ? (Control)CbCoQuan : TxtSoKyHieu).Focus();
     }
 
@@ -254,9 +255,14 @@ public partial class VanBanDenWindow : Window
         if (IsDirty() && !Dlg.Confirm("Thông tin đã nhập chưa được lưu. Đóng và bỏ qua?", danger: true)) e.Cancel = true;
     }
 
+    private string _banDau = "";
+
+    /// <summary>Dấu vết nội dung đang nhập, so với lúc mở form để biết người dùng đã nhập gì chưa.</summary>
+    private string DauVet() => string.Join("\u001f", TxtSoKyHieu.Text, CbTenLoai.Text, (CbDoMat.SelectedItem as DoMat)?.Id, TxtTrichYeu.Text, CbCoQuan.Text, CbDonViNhan.Text, TxtSoDen.Text, TxtGhiChu.Text, TxtNguoiKyNhan.Text, ChkDaKyNhan.IsChecked, DpNgayDen.SelectedDate, DpNgayVanBan.SelectedDate, DpNgayKyNhan.SelectedDate);
+
     private bool IsDirty()
     {
-        if (_isNew) return TxtSoKyHieu.Text.Trim().Length > 0 || TxtTrichYeu.Text.Trim().Length > 0 || CbCoQuan.Text.Trim().Length > 0;
+        if (_isNew) return DauVet() != _banDau;
         try { return Ctx.VanBan.SoSanh(Collect()).Count > 0; }
         catch (Exception) { return true; }
     }

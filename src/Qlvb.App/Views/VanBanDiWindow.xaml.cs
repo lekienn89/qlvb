@@ -59,6 +59,7 @@ public partial class VanBanDiWindow : Window
             if (FormKit.Remember.TryGetValue("di.donvi", out var dv)) CbDonViLuu.Text = dv;
         }
         if (_isNew && copyFrom != null) CopyFrom(copyFrom);
+        _banDau = DauVet();
         Loaded += (_, _) => (_isNew ? (Control)CbTenLoai : TxtSoKyHieu).Focus();
     }
 
@@ -338,9 +339,14 @@ public partial class VanBanDiWindow : Window
         if (IsDirty() && !Dlg.Confirm("Thông tin đã nhập chưa được lưu. Đóng và bỏ qua?", danger: true)) e.Cancel = true;
     }
 
+    private string _banDau = "";
+
+    /// <summary>Dấu vết nội dung đang nhập, so với lúc mở form để biết người dùng đã nhập gì chưa.</summary>
+    private string DauVet() => string.Join("\u001f", TxtSoKyHieu.Text, CbTenLoai.Text, (CbDoMat.SelectedItem as DoMat)?.Id, TxtTrichYeu.Text, CbNguoiKy.Text, CbDonViLuu.Text, TxtSoLuong.Text, TxtGhiChu.Text, DpNgayVanBan.SelectedDate, DpNgayDangKy.SelectedDate, _noiNhan.Count);
+
     private bool IsDirty()
     {
-        if (_isNew) return TxtSoKyHieu.Text.Trim().Length > 0 || TxtTrichYeu.Text.Trim().Length > 0 || _noiNhan.Count > 0;
+        if (_isNew) return DauVet() != _banDau;
         try { return Ctx.VanBan.SoSanh(Collect()).Count > 0; }
         catch (Exception) { return true; }
     }
