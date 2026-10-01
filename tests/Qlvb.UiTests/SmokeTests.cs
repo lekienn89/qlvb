@@ -133,6 +133,7 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Click(form, "Thêm nơi nhận");
         Shot(form, "nhap-van-ban-di");
         Click(form, "Lưu (Ctrl+S)");
+        DismissMessage(); // "Đã đăng ký văn bản đi số …"
         if (!SpinWait(() => !AllWindows().Any(w => w.Title == "Văn bản đi"), Wait))
         {
             Shot(form, "form-khong-dong");
@@ -156,6 +157,7 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         var xacNhan = WaitWindow("Xác nhận thay đổi", exact: true);
         Shot(xacNhan, "xac-nhan-thay-doi");
         Click(xacNhan, "Lưu thay đổi");
+        DismissMessageIfAny();
         Assert.True(SpinWait(() => !AllWindows().Any(w => w.Title == "Sửa văn bản đi"), Wait), "Form sửa không đóng");
         WaitRow(main, "Đã sửa qua kiểm thử");
 
@@ -291,6 +293,17 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Assert.NotNull(btn);
         btn!.AsButton().Invoke();
         Thread.Sleep(300);
+    }
+
+    /// <summary>Đóng hộp thông báo nếu có xuất hiện trong vài giây.</summary>
+    private void DismissMessageIfAny()
+    {
+        AutomationElement? btn = null;
+        if (SpinWait(() => (btn = AllWindows().Select(w => w.FindFirstDescendant(c => c.ByName("OK").And(c.ByControlType(ControlType.Button)))).FirstOrDefault(b => b != null)) != null, TimeSpan.FromSeconds(4)))
+        {
+            btn!.AsButton().Invoke();
+            Thread.Sleep(300);
+        }
     }
 
     private void AssertNoErrorDialog()
