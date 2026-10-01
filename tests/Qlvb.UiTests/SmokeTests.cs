@@ -344,7 +344,16 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
     {
         try
         {
-            var lines = Directory.GetFiles(Path.Combine(_work!, "Data", "Logs"), "*.log").SelectMany(File.ReadAllLines).ToList();
+            // Phần mềm đang chạy giữ tệp nhật ký mở để ghi: phải mở với FileShare.ReadWrite.
+            static IEnumerable<string> Read(string f)
+            {
+                using var fs = new FileStream(f, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var r = new StreamReader(fs);
+                var all = new List<string>();
+                while (r.ReadLine() is { } l) all.Add(l);
+                return all;
+            }
+            var lines = Directory.GetFiles(Path.Combine(_work!, "Data", "Logs"), "*.log").SelectMany(Read).ToList();
             var idx = lines.FindLastIndex(l => l.Contains("[ERR]") || l.Contains("[FTL]"));
             return idx < 0 ? "(nhật ký không có lỗi)" : string.Join(Environment.NewLine, lines.Skip(idx).Take(25));
         }
