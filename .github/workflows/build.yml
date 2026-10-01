@@ -1,0 +1,79 @@
+name: build-windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Qlvb.slnx
+
+      - name: Build
+        run: dotnet build Qlvb.slnx -c Release --no-restore
+
+      - name: Unit tests
+        run: dotnet test tests/Qlvb.Tests -c Release --no-build --logger "trx;LogFileName=unit.trx" --results-directory artifacts/test-results
+
+      - name: Publish (single-file, self-contained, win-x64)
+        run: dotnet publish src/Qlvb.App -c Release -o artifacts/publish
+
+      - name: UI smoke tests (FlaUI)
+        run: dotnet test tests/Qlvb.UiTests -c Release --logger "trx;LogFileName=ui.trx" --results-directory artifacts/test-results
+        env:
+          QLVB_EXE: ${{ github.workspace }}\artifacts\publish\QLVB.exe
+          QLVB_SCREENSHOTS: ${{ github.workspace }}\artifacts\screenshots
+
+      - name: Portable package
+        shell: pwsh
+        run: |
+          $p = "artifacts/portable/QLVB-portable"
+          New-Item -ItemType Directory -Force $p | Out-Null
+          Copy-Item artifacts/publish/QLVB.exe $p
+          Set-Content -Path "$p/portable.flag" -Value "Ban portable: du lieu luu trong thu muc Data canh QLVB.exe" -Encoding utf8
+          if (Test-Path docs) { Copy-Item -Recurse docs "$p/docs" }
+          Copy-Item README.md, LICENSE, NOTICE.md -Destination $p -ErrorAction SilentlyContinue
+          Compress-Archive -Path "$p/*" -DestinationPath artifacts/QLVB-portable-win-x64.zip -Force
+
+      - name: Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) { choco install innosetup -y --no-progress | Out-Null }
+          & $iscc /Qp installer/qlvb.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Checksums
+        shell: pwsh
+        run: |
+          Get-ChildItem artifacts/*.zip, artifacts/installer/*.exe | ForEach-Object {
+            "{0}  {1}" -f (Get-FileHash $_ -Algorithm SHA256).Hash.ToLower(), $_.Name
+          } | Set-Content artifacts/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qlvb-windows
+          path: |
+            artifacts/QLVB-portable-win-x64.zip
+            artifacts/installer/*.exe
+            artifacts/SHA256SUMS.txt
+            artifacts/test-results/**
+            artifacts/screenshots/**
+          retention-days: 14

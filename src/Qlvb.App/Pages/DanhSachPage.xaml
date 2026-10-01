@@ -1,0 +1,94 @@
+<UserControl x:Class="Qlvb.App.Pages.DanhSachPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <DockPanel DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Top">
+                <Button Content="+ Thêm mới (Ctrl+N)" Style="{StaticResource PrimaryButton}" Click="BtnNew_Click" />
+                <Button Content="In sổ (Ctrl+P)" Click="BtnPrint_Click" />
+                <Button Content="Xuất tệp…" Click="BtnExport_Click" />
+            </StackPanel>
+            <StackPanel>
+                <TextBlock x:Name="TxtTitle" Style="{StaticResource H1}" Margin="0,0,0,2" />
+                <TextBlock x:Name="TxtForm" Style="{StaticResource Hint}" Margin="0,0,0,10" />
+            </StackPanel>
+        </DockPanel>
+
+        <!-- Bộ lọc -->
+        <Border DockPanel.Dock="Top" Background="White" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="4" Padding="10,6" Margin="0,0,0,8">
+            <WrapPanel>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Tìm nhanh (Ctrl+F)" Style="{StaticResource Hint}" />
+                    <TextBox x:Name="TxtSearch" Width="260" TextChanged="Filter_Changed" ToolTip="Gõ không dấu cũng được; nhiều từ = phải chứa tất cả" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Năm" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbNam" Width="90" SelectionChanged="CbNam_Changed" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Quyển sổ" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbSo" Width="200" DisplayMemberPath="Value" SelectionChanged="Filter_Changed" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Độ mật" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbDoMat" Width="140" DisplayMemberPath="Value" SelectionChanged="Filter_Changed" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Trạng thái" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbTrangThai" Width="130" SelectionChanged="Filter_Changed">
+                        <ComboBoxItem Content="Tất cả" />
+                        <ComboBoxItem Content="Hiệu lực" />
+                        <ComboBoxItem Content="Đã hủy" />
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock x:Name="TxtDateLabel" Text="Từ ngày" Style="{StaticResource Hint}" />
+                    <DatePicker x:Name="DpTu" Width="130" SelectedDateChanged="Filter_Changed" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,0">
+                    <TextBlock Text="Đến ngày" Style="{StaticResource Hint}" />
+                    <DatePicker x:Name="DpDen" Width="130" SelectedDateChanged="Filter_Changed" />
+                </StackPanel>
+                <Button Content="Xóa lọc" VerticalAlignment="Bottom" Click="BtnClear_Click" />
+            </WrapPanel>
+        </Border>
+
+        <!-- Phân trang -->
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                <TextBlock Text="Mỗi trang" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <ComboBox x:Name="CbPageSize" Width="80" SelectionChanged="CbPageSize_Changed">
+                    <ComboBoxItem Content="20" />
+                    <ComboBoxItem Content="50" />
+                    <ComboBoxItem Content="100" />
+                    <ComboBoxItem Content="200" />
+                    <ComboBoxItem Content="Tất cả" />
+                </ComboBox>
+                <Button Content="«" Style="{StaticResource SmallButton}" Click="BtnFirst_Click" ToolTip="Trang đầu" />
+                <Button Content="‹" Style="{StaticResource SmallButton}" Click="BtnPrev_Click" ToolTip="Trang trước" />
+                <TextBlock x:Name="TxtPage" VerticalAlignment="Center" Margin="8,0" />
+                <Button Content="›" Style="{StaticResource SmallButton}" Click="BtnNext_Click" ToolTip="Trang sau" />
+                <Button Content="»" Style="{StaticResource SmallButton}" Click="BtnLast_Click" ToolTip="Trang cuối" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Sửa" Click="BtnEdit_Click" />
+                <Button Content="Hủy văn bản" Click="BtnCancel_Click" Style="{StaticResource DangerButton}" />
+                <Button Content="Khôi phục" Click="BtnRestore_Click" />
+                <TextBlock x:Name="TxtTotal" VerticalAlignment="Center" Margin="12,0" Foreground="{StaticResource Muted}" />
+            </StackPanel>
+        </DockPanel>
+
+        <DataGrid x:Name="Grid" Sorting="Grid_Sorting" MouseDoubleClick="Grid_MouseDoubleClick" KeyDown="Grid_KeyDown">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Xem / Sửa" Click="BtnEdit_Click" />
+                    <MenuItem Header="Sao chép thành văn bản mới" Click="MnuCopy_Click" />
+                    <Separator />
+                    <MenuItem Header="Hủy văn bản…" Click="BtnCancel_Click" />
+                    <MenuItem Header="Khôi phục" Click="BtnRestore_Click" />
+                    <MenuItem x:Name="MnuHardDelete" Header="Xóa vĩnh viễn… (quản trị)" Click="MnuHardDelete_Click" />
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

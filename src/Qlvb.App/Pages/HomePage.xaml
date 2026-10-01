@@ -1,0 +1,77 @@
+<UserControl x:Class="Qlvb.App.Pages.HomePage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <TextBlock x:Name="TxtTitle" Text="Trang chủ" Style="{StaticResource H1}" />
+            <Border x:Name="BackupWarn" Style="{StaticResource WarnBox}" Visibility="Collapsed" Margin="0,0,12,12">
+                <DockPanel>
+                    <Button Content="Sao lưu nhanh" DockPanel.Dock="Right" Click="BtnBackup_Click" Margin="0" />
+                    <TextBlock x:Name="TxtBackupWarn" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{StaticResource Warn}" />
+                </DockPanel>
+            </Border>
+            <WrapPanel>
+                <Border Style="{StaticResource Card}" Width="260">
+                    <StackPanel>
+                        <TextBlock x:Name="TxtDiLabel" Text="Văn bản đi" Foreground="{StaticResource Muted}" />
+                        <TextBlock x:Name="TxtDi" FontSize="34" FontWeight="SemiBold" Foreground="{StaticResource Primary}" />
+                        <TextBlock x:Name="TxtDiDetail" Style="{StaticResource Hint}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Width="260">
+                    <StackPanel>
+                        <TextBlock x:Name="TxtDenLabel" Text="Văn bản đến" Foreground="{StaticResource Muted}" />
+                        <TextBlock x:Name="TxtDen" FontSize="34" FontWeight="SemiBold" Foreground="{StaticResource Primary}" />
+                        <TextBlock x:Name="TxtDenDetail" Style="{StaticResource Hint}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Width="300">
+                    <StackPanel>
+                        <TextBlock Text="Thao tác nhanh" Foreground="{StaticResource Muted}" Margin="0,0,0,6" />
+                        <WrapPanel>
+                            <Button Content="+ Văn bản đi" Style="{StaticResource PrimaryButton}" Click="BtnNewDi_Click" Margin="0,0,6,6" />
+                            <Button Content="+ Văn bản đến" Style="{StaticResource PrimaryButton}" Click="BtnNewDen_Click" Margin="0,0,6,6" />
+                            <Button Content="Tra cứu" Click="BtnSearch_Click" Margin="0,0,6,6" />
+                            <Button Content="Sao lưu nhanh" Click="BtnBackup_Click" Margin="0,0,6,6" />
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+            </WrapPanel>
+            <Border x:Name="SampleCard" Style="{StaticResource Card}" Visibility="Collapsed">
+                <DockPanel>
+                    <Button Content="Nạp dữ liệu mẫu" DockPanel.Dock="Right" Click="BtnSample_Click" />
+                    <TextBlock TextWrapping="Wrap" VerticalAlignment="Center"
+                               Text="Chưa có văn bản nào. Có thể nạp DỮ LIỆU MẪU (dữ liệu giả) để làm quen phần mềm, sau đó xóa bằng một nút trước khi nhập văn bản thật." />
+                </DockPanel>
+            </Border>
+            <TextBlock Text="Theo độ mật (năm nay, không tính văn bản đã hủy)" Style="{StaticResource H2}" />
+            <ItemsControl x:Name="ListDoMat" Margin="0,0,12,8">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="160" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="70" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Nhom}" />
+                            <Border Grid.Column="1" Background="{StaticResource Primary}" Height="14" HorizontalAlignment="Left" Width="{Binding Width}" CornerRadius="2" />
+                            <TextBlock Grid.Column="2" Text="{Binding SoLuong}" TextAlignment="Right" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="Đăng ký gần đây" Style="{StaticResource H2}" />
+            <DataGrid x:Name="GridRecent" MaxHeight="360" Margin="0,0,12,0" MouseDoubleClick="GridRecent_MouseDoubleClick">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Sổ" Binding="{Binding Loai}" Width="60" />
+                    <DataGridTextColumn Header="Số" Binding="{Binding So}" Width="80" />
+                    <DataGridTextColumn Header="Số, ký hiệu" Binding="{Binding SoKyHieu}" Width="160" />
+                    <DataGridTextColumn Header="Tên loại và trích yếu" Binding="{Binding NoiDung}" Width="*" ElementStyle="{StaticResource WrapCell}" />
+                    <DataGridTextColumn Header="Độ mật" Binding="{Binding DoMat}" Width="100" />
+                    <DataGridTextColumn Header="Đăng ký lúc" Binding="{Binding Luc}" Width="130" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

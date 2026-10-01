@@ -1,0 +1,61 @@
+<UserControl x:Class="Qlvb.App.Pages.BaoCaoPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Báo cáo – Thống kê" Style="{StaticResource H1}" />
+        <Border DockPanel.Dock="Top" Background="White" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,0,0,8">
+            <WrapPanel>
+                <StackPanel Margin="0,0,12,4">
+                    <TextBlock Text="Thống kê theo" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbTieuChi" Width="170" DisplayMemberPath="Value" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,4">
+                    <TextBlock Text="Loại sổ" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbLoai" Width="130">
+                        <ComboBoxItem Content="Cả đi và đến" />
+                        <ComboBoxItem Content="Văn bản đi" />
+                        <ComboBoxItem Content="Văn bản đến" />
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel Margin="0,0,12,4">
+                    <TextBlock Text="Năm" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbNam" Width="110" DisplayMemberPath="Value" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,4">
+                    <TextBlock Text="Ngày đăng ký từ" Style="{StaticResource Hint}" />
+                    <DatePicker x:Name="DpTu" Width="130" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,4">
+                    <TextBlock Text="đến" Style="{StaticResource Hint}" />
+                    <DatePicker x:Name="DpDen" Width="130" />
+                </StackPanel>
+                <StackPanel Margin="0,0,12,4">
+                    <TextBlock Text="Độ mật" Style="{StaticResource Hint}" />
+                    <ComboBox x:Name="CbDoMat" Width="140" DisplayMemberPath="Value" />
+                </StackPanel>
+                <CheckBox x:Name="ChkHuy" Content="Tính cả văn bản đã hủy" VerticalAlignment="Bottom" Margin="0,0,12,8" />
+                <Button Content="Xem thống kê" Style="{StaticResource PrimaryButton}" Click="BtnRun_Click" VerticalAlignment="Bottom" />
+            </WrapPanel>
+        </Border>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
+            <Button Content="In báo cáo (Ctrl+P)" Click="BtnPrint_Click" />
+            <Button Content="Xuất Excel/CSV…" Click="BtnExport_Click" />
+            <TextBlock x:Name="TxtTotal" VerticalAlignment="Center" Margin="12,0" FontWeight="SemiBold" />
+        </StackPanel>
+        <DataGrid x:Name="Grid">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="STT" Binding="{Binding Stt}" Width="60" />
+                <DataGridTextColumn x:Name="ColNhom" Header="Nhóm" Binding="{Binding Nhom}" Width="*" ElementStyle="{StaticResource WrapCell}" />
+                <DataGridTextColumn Header="Số lượng" Binding="{Binding SoLuong}" Width="100" />
+                <DataGridTextColumn Header="Tỷ lệ" Binding="{Binding TyLe}" Width="90" />
+                <DataGridTemplateColumn Header="" Width="2*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource Primary}" Height="12" HorizontalAlignment="Left" Width="{Binding Bar}" CornerRadius="2" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

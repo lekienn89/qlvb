@@ -1,0 +1,117 @@
+<UserControl x:Class="Qlvb.App.Pages.TraCuuPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Tra cứu nâng cao" Style="{StaticResource H1}" />
+        <Border DockPanel.Dock="Top" Background="White" BorderBrush="{StaticResource Border}" BorderThickness="1" CornerRadius="4" Padding="12,8" Margin="0,0,0,8">
+            <StackPanel>
+                <WrapPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Sổ" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbLoai" Width="120" SelectionChanged="CbLoai_Changed">
+                            <ComboBoxItem Content="Văn bản đi" />
+                            <ComboBoxItem Content="Văn bản đến" />
+                        </ComboBox>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Năm" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbNam" Width="110" DisplayMemberPath="Value" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Từ khóa (mọi trường)" Style="{StaticResource Hint}" />
+                        <TextBox x:Name="TxtTuKhoa" Width="240" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Số thứ tự từ – đến" Style="{StaticResource Hint}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="TxtSttTu" Width="60" />
+                            <TextBlock Text=" – " VerticalAlignment="Center" />
+                            <TextBox x:Name="TxtSttDen" Width="60" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel x:Name="PnlSoDen" Margin="0,0,12,4">
+                        <TextBlock Text="Số đến" Style="{StaticResource Hint}" />
+                        <TextBox x:Name="TxtSoDen" Width="70" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Số, ký hiệu" Style="{StaticResource Hint}" />
+                        <TextBox x:Name="TxtSoKyHieu" Width="140" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Tên loại" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbTenLoai" Width="150" IsEditable="True" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Trích yếu" Style="{StaticResource Hint}" />
+                        <TextBox x:Name="TxtTrichYeu" Width="200" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Độ mật" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbDoMat" Width="140" DisplayMemberPath="Value" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock x:Name="LblNgay" Text="Ngày văn bản từ" Style="{StaticResource Hint}" />
+                        <DatePicker x:Name="DpTu" Width="130" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="đến" Style="{StaticResource Hint}" />
+                        <DatePicker x:Name="DpDen" Width="130" />
+                    </StackPanel>
+                    <!-- Riêng sổ đi -->
+                    <StackPanel x:Name="PnlNguoiKy" Margin="0,0,12,4">
+                        <TextBlock Text="Người ký" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbNguoiKy" Width="160" IsEditable="True" />
+                    </StackPanel>
+                    <StackPanel x:Name="PnlNoiNhan" Margin="0,0,12,4">
+                        <TextBlock Text="Nơi nhận" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbNoiNhan" Width="160" IsEditable="True" />
+                    </StackPanel>
+                    <StackPanel x:Name="PnlDonViLuu" Margin="0,0,12,4">
+                        <TextBlock Text="Đơn vị lưu" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbDonViLuu" Width="160" IsEditable="True" />
+                    </StackPanel>
+                    <!-- Riêng sổ đến -->
+                    <StackPanel x:Name="PnlCoQuan" Margin="0,0,12,4">
+                        <TextBlock Text="Cơ quan ban hành" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbCoQuan" Width="180" IsEditable="True" />
+                    </StackPanel>
+                    <StackPanel x:Name="PnlDonViNhan" Margin="0,0,12,4">
+                        <TextBlock Text="Đơn vị nhận" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbDonViNhan" Width="160" IsEditable="True" />
+                    </StackPanel>
+                    <StackPanel x:Name="PnlNgayVb" Margin="0,0,12,4">
+                        <TextBlock Text="Ngày văn bản từ – đến" Style="{StaticResource Hint}" />
+                        <StackPanel Orientation="Horizontal">
+                            <DatePicker x:Name="DpVbTu" Width="130" />
+                            <DatePicker x:Name="DpVbDen" Width="130" Margin="6,2,0,2" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,4">
+                        <TextBlock Text="Trạng thái" Style="{StaticResource Hint}" />
+                        <ComboBox x:Name="CbTrangThai" Width="120">
+                            <ComboBoxItem Content="Tất cả" />
+                            <ComboBoxItem Content="Hiệu lực" />
+                            <ComboBoxItem Content="Đã hủy" />
+                        </ComboBox>
+                    </StackPanel>
+                </WrapPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                    <Button Content="Tìm kiếm" Style="{StaticResource PrimaryButton}" IsDefault="True" Click="BtnSearch_Click" Margin="0,4,4,4" />
+                    <Button Content="Xóa điều kiện" Click="BtnClear_Click" />
+                    <TextBlock Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0"
+                               Text="Tìm không phân biệt hoa thường, có dấu hay không dấu. Trích yếu tài liệu TUYỆT MẬT không được lưu nên không tìm được theo trích yếu." />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+        <DockPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                <Button Content="In kết quả" Click="BtnPrint_Click" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Sửa" Click="BtnEdit_Click" />
+                <TextBlock x:Name="TxtTotal" VerticalAlignment="Center" Margin="12,0" Foreground="{StaticResource Muted}" />
+            </StackPanel>
+        </DockPanel>
+        <DataGrid x:Name="Grid" CanUserSortColumns="False" MouseDoubleClick="Grid_MouseDoubleClick" />
+    </DockPanel>
+</UserControl>

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>QLVB</AssemblyName>
+    <RootNamespace>Qlvb.App</RootNamespace>
+    <ApplicationIcon>Assets\qlvb.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <DebugType>embedded</DebugType>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <SatelliteResourceLanguages>vi</SatelliteResourceLanguages>
+    <Title>Quản lý văn bản đi – đến</Title>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Qlvb.Domain\Qlvb.Domain.csproj" />
+    <ProjectReference Include="..\Qlvb.Application\Qlvb.Application.csproj" />
+    <ProjectReference Include="..\Qlvb.Infrastructure\Qlvb.Infrastructure.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Using Include="System.IO" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\qlvb.png" />
+    <Resource Include="Assets\qlvb.ico" />
+  </ItemGroup>
+</Project>

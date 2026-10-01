@@ -1,0 +1,28 @@
+{
+  "Ma": "SO_DEN_ND63_2026",
+  "Loai": 2,
+  "TieuDe": "SỔ ĐĂNG KÝ BÍ MẬT NHÀ NƯỚC ĐẾN",
+  "CanCu": "Phụ lục III ban hành kèm theo Nghị định số 63/2026/NĐ-CP ngày 28/02/2026 của Chính phủ (thay thế theo Công văn số 2663/VPCP-NC ngày 27/03/2026)",
+  "HieuLucTu": "2026-03-01",
+  "PhienBan": 1,
+  "HuongDanTrangBia": [
+    "(1) Tên cơ quan, tổ chức chủ quản cấp trên trực tiếp (nếu có)",
+    "(2) Tên cơ quan, tổ chức",
+    "(3) Năm mở Sổ đăng ký bí mật nhà nước đến",
+    "(4) Ngày, tháng bắt đầu và kết thúc đăng ký",
+    "(5) Số thứ tự đăng ký văn bản mật đến đầu tiên và cuối cùng",
+    "(6) Số thứ tự của quyển sổ"
+  ],
+  "Cot": [
+    { "So": 1, "TieuDe": "Số thứ tự", "Truong": "so_thu_tu", "DoRong": 0.6, "CanGiua": true, "HuongDan": "Ghi số thứ tự theo năm công tác từ 01 đến khi sử dụng hết quyển sổ." },
+    { "So": 2, "TieuDe": "Ngày đến", "Truong": "ngay_den", "DoRong": 0.9, "CanGiua": true, "HuongDan": "Ghi theo ngày, tháng được ghi trên dấu đến." },
+    { "So": 3, "TieuDe": "Số đến", "Truong": "so_den", "DoRong": 0.6, "CanGiua": true, "HuongDan": "Ghi theo số được ghi trên dấu đến." },
+    { "So": 4, "TieuDe": "Cơ quan, tổ chức ban hành tài liệu, vật chứa BMNN", "Truong": "co_quan_ban_hanh", "DoRong": 1.6, "CanGiua": false, "HuongDan": "Ghi cơ quan, tổ chức ban hành tài liệu, vật chứa bí mật nhà nước." },
+    { "So": 5, "TieuDe": "Số, ký hiệu", "Truong": "so_ky_hieu", "DoRong": 1.2, "CanGiua": false, "HuongDan": "Ghi số và ký hiệu của tài liệu, vật chứa bí mật nhà nước đến." },
+    { "So": 6, "TieuDe": "Ngày tháng", "Truong": "ngay_van_ban", "DoRong": 0.9, "CanGiua": true, "HuongDan": "Ghi ngày, tháng, năm của văn bản mật đến." },
+    { "So": 7, "TieuDe": "Tên loại và trích yếu nội dung", "Truong": "ten_loai_trich_yeu", "DoRong": 2.8, "CanGiua": false, "HuongDan": "Ghi tên loại và trích yếu nội dung tài liệu, vật chứa bí mật nhà nước; bí mật nhà nước độ \"Tuyệt mật\" thì không được ghi trích yếu." },
+    { "So": 8, "TieuDe": "Độ mật", "Truong": "do_mat", "DoRong": 0.8, "CanGiua": true, "HuongDan": "Ghi rõ độ mật của tài liệu, vật chứa bí mật nhà nước (Tuyệt mật, Tối mật, Mật hoặc ký hiệu A, B, C)." },
+    { "So": 9, "TieuDe": "Đơn vị và ký nhận", "Truong": "don_vi_ky_nhan", "DoRong": 1.6, "CanGiua": false, "HuongDan": "Ghi tên đơn vị nhận tài liệu, vật chứa bí mật nhà nước đến và ký nhận." },
+    { "So": 10, "TieuDe": "Ghi chú", "Truong": "ghi_chu", "DoRong": 1.0, "CanGiua": false, "HuongDan": "Ghi những nội dung cần thiết khác." }
+  ]
+}

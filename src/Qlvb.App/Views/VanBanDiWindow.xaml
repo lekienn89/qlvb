@@ -1,0 +1,135 @@
+<Window x:Class="Qlvb.App.Views.VanBanDiWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Văn bản đi" Width="940" Height="760" MinWidth="820" MinHeight="600"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <Window.InputBindings>
+        <KeyBinding Key="S" Modifiers="Control" Command="{x:Static ApplicationCommands.Save}" />
+        <KeyBinding Key="Escape" Command="{x:Static ApplicationCommands.Close}" />
+    </Window.InputBindings>
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static ApplicationCommands.Save}" Executed="CmdSave" />
+        <CommandBinding Command="{x:Static ApplicationCommands.Close}" Executed="CmdClose" />
+    </Window.CommandBindings>
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{StaticResource PrimaryLight}" Padding="20,10">
+            <DockPanel>
+                <Button x:Name="BtnCopyPrev" DockPanel.Dock="Right" Content="Sao chép từ văn bản trước" Click="BtnCopyPrev_Click" Margin="0" />
+                <StackPanel>
+                    <TextBlock x:Name="TxtHeader" Text="Đăng ký văn bản đi" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource Primary}" />
+                    <TextBlock x:Name="TxtSubHeader" Style="{StaticResource Hint}" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0" Padding="16,8">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center" Style="{StaticResource Hint}" Text="Ctrl+S: Lưu   •   Esc: Đóng   •   (*) bắt buộc" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BtnSaveNew" Content="Lưu và nhập tiếp" Click="BtnSaveNew_Click" />
+                    <Button x:Name="BtnSave" Content="Lưu (Ctrl+S)" Style="{StaticResource PrimaryButton}" Click="BtnSave_Click" />
+                    <Button Content="Đóng" Click="BtnClose_Click" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20,12,20,12">
+                <Border x:Name="CopyBanner" Style="{StaticResource WarnBox}" Visibility="Collapsed">
+                    <TextBlock x:Name="TxtCopyBanner" TextWrapping="Wrap" Foreground="{StaticResource Warn}" />
+                </Border>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="24" />
+                        <ColumnDefinition Width="150" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="(1) Số thứ tự" Style="{StaticResource Label}" />
+                    <TextBox x:Name="TxtSoThuTu" Grid.Column="1" IsReadOnly="True" Background="#F1F3F6" FontWeight="SemiBold" />
+                    <TextBlock Text="Ngày đăng ký (*)" Grid.Column="3" Style="{StaticResource Label}" />
+                    <DatePicker x:Name="DpNgayDangKy" Grid.Column="4" SelectedDateChanged="DpNgayDangKy_Changed" />
+
+                    <TextBlock Text="Tên loại (*)" Grid.Row="1" Style="{StaticResource Label}" />
+                    <DockPanel Grid.Row="1" Grid.Column="1">
+                        <Button Content="+" ToolTip="Thêm nhanh loại văn bản" DockPanel.Dock="Right" Style="{StaticResource SmallButton}" Click="QuickAddLoai_Click" />
+                        <ComboBox x:Name="CbTenLoai" IsEditable="True" IsTextSearchEnabled="True" LostFocus="CbTenLoai_LostFocus" />
+                    </DockPanel>
+                    <TextBlock Text="(5) Độ mật (*)" Grid.Row="1" Grid.Column="3" Style="{StaticResource Label}" />
+                    <ComboBox x:Name="CbDoMat" Grid.Row="1" Grid.Column="4" DisplayMemberPath="HienThi" SelectionChanged="CbDoMat_SelectionChanged" />
+
+                    <TextBlock Text="(2) Số, ký hiệu (*)" Grid.Row="2" Style="{StaticResource Label}" />
+                    <DockPanel Grid.Row="2" Grid.Column="1">
+                        <Button Content="Gợi ý" ToolTip="Điền số, ký hiệu theo mẫu trong Cấu hình" DockPanel.Dock="Right" Style="{StaticResource SmallButton}" Click="BtnGoiY_Click" />
+                        <TextBox x:Name="TxtSoKyHieu" MaxLength="100" />
+                    </DockPanel>
+                    <TextBlock Text="(3) Ngày văn bản (*)" Grid.Row="2" Grid.Column="3" Style="{StaticResource Label}" />
+                    <DatePicker x:Name="DpNgayVanBan" Grid.Row="2" Grid.Column="4" />
+
+                    <TextBlock Text="(6) Người ký (*)" Grid.Row="3" Style="{StaticResource Label}" />
+                    <DockPanel Grid.Row="3" Grid.Column="1">
+                        <Button Content="+" ToolTip="Thêm nhanh người ký" DockPanel.Dock="Right" Style="{StaticResource SmallButton}" Click="QuickAddNguoiKy_Click" />
+                        <ComboBox x:Name="CbNguoiKy" IsEditable="True" IsTextSearchEnabled="True" />
+                    </DockPanel>
+                    <TextBlock Text="(8) Đơn vị lưu (*)" Grid.Row="3" Grid.Column="3" Style="{StaticResource Label}" />
+                    <DockPanel Grid.Row="3" Grid.Column="4">
+                        <Button Content="+" ToolTip="Thêm nhanh đơn vị" DockPanel.Dock="Right" Style="{StaticResource SmallButton}" Click="QuickAddDonVi_Click" />
+                        <ComboBox x:Name="CbDonViLuu" IsEditable="True" IsTextSearchEnabled="True" />
+                    </DockPanel>
+
+                    <TextBlock Text="(9) Số lượng (*)" Grid.Row="4" Style="{StaticResource Label}" />
+                    <TextBox x:Name="TxtSoLuong" Grid.Row="4" Grid.Column="1" MaxLength="4" Width="90" HorizontalAlignment="Left" PreviewTextInput="Digits_PreviewTextInput" />
+                </Grid>
+
+                <TextBlock Text="(4) Trích yếu nội dung (*)" Style="{StaticResource Label}" Margin="0,10,0,2" />
+                <Grid>
+                    <TextBox x:Name="TxtTrichYeu" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70" MaxLength="2000"
+                             VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" />
+                    <Border x:Name="TmNotice" Background="{StaticResource ErrorBg}" BorderBrush="{StaticResource Accent}" BorderThickness="1" Padding="10" Visibility="Collapsed">
+                        <TextBlock TextWrapping="Wrap" Foreground="{StaticResource Accent}"
+                                   Text="Tài liệu độ mật TUYỆT MẬT: KHÔNG ghi trích yếu (Điều 6 Nghị định 63/2026/NĐ-CP). Ô này bị khóa; cột (4) trên sổ chỉ ghi tên loại." />
+                    </Border>
+                </Grid>
+
+                <TextBlock Text="(7) Nơi nhận và ký nhận (*)" Style="{StaticResource Label}" Margin="0,12,0,2" />
+                <DockPanel Margin="0,0,0,4">
+                    <Button Content="Thêm nơi nhận" DockPanel.Dock="Right" Click="BtnAddNoiNhan_Click" Margin="4,0,0,0" />
+                    <ComboBox x:Name="CbNoiNhan" IsEditable="True" IsTextSearchEnabled="True" KeyDown="CbNoiNhan_KeyDown" ToolTip="Gõ hoặc chọn nơi nhận rồi nhấn Enter" />
+                </DockPanel>
+                <DataGrid x:Name="GridNoiNhan" IsReadOnly="False" MinHeight="90" MaxHeight="220" CanUserSortColumns="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="TT" Binding="{Binding ThuTu}" IsReadOnly="True" Width="40" />
+                        <DataGridTextColumn Header="Nơi nhận" Binding="{Binding NoiNhan, UpdateSourceTrigger=PropertyChanged}" Width="2*" />
+                        <DataGridCheckBoxColumn Header="Đã ký nhận" Binding="{Binding DaKy, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                        <DataGridTextColumn Header="Người ký nhận" Binding="{Binding NguoiKyNhan, UpdateSourceTrigger=PropertyChanged}" Width="*" />
+                        <DataGridTemplateColumn Header="Ngày ký nhận" Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <DatePicker SelectedDate="{Binding NgayKyNhan, UpdateSourceTrigger=PropertyChanged}" BorderThickness="0" MinHeight="0" Margin="0" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Width="60">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Xóa" Click="BtnRemoveNoiNhan_Click" Style="{StaticResource SmallButton}" Margin="0" />
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <TextBlock Text="(10) Ghi chú" Style="{StaticResource Label}" Margin="0,12,0,2" />
+                <TextBox x:Name="TxtGhiChu" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="44" MaxLength="1000" VerticalContentAlignment="Top" />
+                <TextBlock x:Name="TxtMeta" Style="{StaticResource Hint}" Margin="0,10,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Qlvb.App/Qlvb.App.csproj" />
+    <Project Path="src/Qlvb.Application/Qlvb.Application.csproj" />
+    <Project Path="src/Qlvb.Domain/Qlvb.Domain.csproj" />
+    <Project Path="src/Qlvb.Infrastructure/Qlvb.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Qlvb.Tests/Qlvb.Tests.csproj" />
+    <Project Path="tests/Qlvb.UiTests/Qlvb.UiTests.csproj" />
+  </Folder>
+</Solution>

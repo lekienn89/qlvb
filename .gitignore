@@ -1,0 +1,18 @@
+bin/
+obj/
+out/
+publish/
+artifacts/
+*.user
+*.suo
+.vs/
+.idea/
+TestResults/
+# Không bao giờ đưa dữ liệu thật/khóa vào kho mã
+Data/
+*.db
+*.db-wal
+*.db-shm
+*.key
+*.qlvbak
+*.log
