@@ -231,7 +231,11 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
 
         // Thoát (tự sao lưu khi thoát)
         main = WaitWindow("– Quản lý văn bản đi – đến");
-        main.Close();
+        Assert.DoesNotContain(AllWindows(), w => w.Title.StartsWith("Đã khóa", StringComparison.Ordinal)); // mở khóa bằng mật khẩu mới thành công
+        // Đóng bằng Alt+F4: nút X qua UIA bị chặn đồng bộ bởi hộp xác nhận thoát.
+        main.Focus();
+        Thread.Sleep(300);
+        Keyboard.TypeSimultaneously(VirtualKeyShort.ALT, VirtualKeyShort.F4);
         AnswerConfirm(true);
         var exited = SpinWait(() => _app.HasExited, TimeSpan.FromSeconds(30));
         Assert.True(exited, "Phần mềm không thoát");
