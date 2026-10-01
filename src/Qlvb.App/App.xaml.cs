@@ -34,7 +34,7 @@ public partial class App : System.Windows.Application
             if (s is DatePicker dp && dp.Template?.FindName("PART_TextBox", dp) is DatePickerTextBox tb)
             {
                 tb.ApplyTemplate();
-                if (tb.Template?.FindName("PART_Watermark", tb) is ContentControl wm) wm.Content = "ngày/tháng/năm";
+                if (tb.Template?.FindName("PART_Watermark", tb) is ContentControl wm) wm.Content = "dd/mm/yyyy";
             }
         }));
 
