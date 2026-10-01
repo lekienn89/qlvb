@@ -105,8 +105,24 @@ public sealed class VanBanService(IDataStore store, IClock clock, ICurrentUser u
                 result.Error(v is VanBanDen ? nameof(VanBanDen.NgayDen) : nameof(VanBanBase.NgayDangKy),
                     $"Không được chuyển văn bản sang năm khác (văn bản thuộc sổ năm {cu.Nam}).");
         }
+        if (v.Id == 0 && result.IsValid) KiemTraThuTuNgay(v, result);
         var dups = result.IsValid ? store.FindDuplicates(v).Where(x => x.Id != v.Id).ToList() : [];
         return new KiemTraTruocLuu { KetQua = result, NghiTrung = dups };
+    }
+
+    /// <summary>Sổ ghi theo thứ tự thời gian: văn bản mới có ngày đăng ký sớm hơn văn bản vừa đăng ký trước đó thường do đồng hồ máy sai.</summary>
+    private void KiemTraThuTuNgay(VanBanBase v, ValidationResult r)
+    {
+        var nam = NamCuaBanGhi(v);
+        var truoc = store.Search(new SearchCriteria { Loai = v.Loai, Nam = nam, SapXep = "so_thu_tu", Giam = true, Limit = 1, TrangThai = LocTrangThai.TatCa }).Items.FirstOrDefault();
+        if (truoc == null) return;
+        var (ngayMoi, ngayTruoc, ten) = v is VanBanDen den
+            ? (den.NgayDen, ((VanBanDen)truoc).NgayDen, "Ngày đến")
+            : (v.NgayDangKy, truoc.NgayDangKy, "Ngày đăng ký");
+        if (ngayMoi < ngayTruoc)
+            r.Warn(v is VanBanDen ? nameof(VanBanDen.NgayDen) : nameof(VanBanBase.NgayDangKy),
+                $"{ten} {ngayMoi:dd/MM/yyyy} sớm hơn văn bản số {truoc.SoThuTu:00} đã đăng ký ngày {ngayTruoc:dd/MM/yyyy}. " +
+                "Hãy kiểm tra lại ngày nhập và đồng hồ của máy tính.");
     }
 
     private void KiemTraDanhMuc(VanBanBase v, ValidationResult r)

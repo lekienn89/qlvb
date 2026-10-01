@@ -62,6 +62,11 @@ public partial class LoginWindow : Window
         {
             using (new WaitCursor())
                 Ctx.Session.Login(TxtPassword.Password, (from, to) => { });
+            if (Ctx.Session.CanhBaoDongHo is { } canhBao)
+            {
+                Ctx.Log.Warning("Đồng hồ máy sớm hơn thao tác cuối trong nhật ký");
+                Dlg.Warn(canhBao);
+            }
             DialogResult = true;
         }
         catch (AuthException ex)
@@ -73,6 +78,11 @@ public partial class LoginWindow : Window
         catch (DatabaseOpenException ex)
         {
             Ctx.Log.Error("Không mở được CSDL: {Err}", Logging.Describe(ex));
+            ShowMissing(ex.Message);
+        }
+        catch (InvalidDataException ex)
+        {
+            Ctx.Log.Error("Tệp khóa hỏng: {Err}", Logging.Describe(ex));
             ShowMissing(ex.Message);
         }
         catch (Exception ex)

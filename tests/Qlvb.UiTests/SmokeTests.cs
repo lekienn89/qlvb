@@ -17,6 +17,7 @@ namespace Qlvb.UiTests;
 public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
 {
     private const string Password = "MatKhau@2026";
+    private const string NewPassword = "MatKhauMoi#2027";
     private readonly UIA3Automation _auto = new();
     private Application? _app;
     private readonly string _shots = Environment.GetEnvironmentVariable("QLVB_SCREENSHOTS") ?? Path.Combine(AppContext.BaseDirectory, "screenshots");
@@ -112,12 +113,115 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         AnswerConfirm(true); // bỏ thông tin chưa lưu
         Thread.Sleep(500);
 
+        // ---------------------------------------------------------------- nghiệp vụ chính trên giao diện
+        // Đăng ký một văn bản đi thật (không phải dữ liệu mẫu) bằng bàn phím
+        main = WaitWindow("– Quản lý văn bản đi – đến");
+        main.Focus();
+        Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
+        form = WaitWindow("Văn bản đi", exact: true);
+        Type(form, "CbTenLoai", "Công văn");
+        Type(form, "TxtSoKyHieu", "99/UI-TEST");
+        var cbDm = form.FindFirstDescendant(cf => cf.ByAutomationId("CbDoMat"))!;
+        cbDm.Focus();
+        Thread.Sleep(200);
+        Keyboard.Press(VirtualKeyShort.END); // MẬT (mức thấp nhất)
+        Thread.Sleep(300);
+        Type(form, "CbNguoiKy", "Trần Thị Thử");
+        Type(form, "CbDonViLuu", "Văn phòng (mẫu)");
+        Type(form, "TxtTrichYeu", "Kiểm thử giao diện tự động");
+        Type(form, "CbNoiNhan", "Phòng Kế hoạch kiểm thử");
+        Click(form, "Thêm nơi nhận");
+        Shot(form, "nhap-van-ban-di");
+        form.Focus();
+        Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_S);
+        Assert.True(SpinWait(() => !AllWindows().Any(w => w.Title == "Văn bản đi"), Wait), "Form không đóng sau khi lưu");
+        AssertNoErrorDialog();
+
+        // Lọc danh sách đúng văn bản vừa nhập
+        main = WaitWindow("Văn bản đi – Quản lý văn bản đi – đến");
+        Type(main, "TxtSearch", "UI-TEST");
+        Thread.Sleep(800);
+        var row = WaitRow(main, "99/UI-TEST");
+        Shot(main, "danh-sach-sau-khi-luu");
+
+        // Sửa: đổi ghi chú → hộp xác nhận thay đổi
+        row.AsGridRow().Select();
+        Click(main, "Sửa");
+        var edit = WaitWindow("Sửa văn bản đi", exact: true);
+        Type(edit, "TxtGhiChu", "Đã sửa qua kiểm thử");
+        edit.Focus();
+        Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_S);
+        var xacNhan = WaitWindow("Xác nhận thay đổi", exact: true);
+        Shot(xacNhan, "xac-nhan-thay-doi");
+        Click(xacNhan, "Lưu thay đổi");
+        Assert.True(SpinWait(() => !AllWindows().Any(w => w.Title == "Sửa văn bản đi"), Wait), "Form sửa không đóng");
+        WaitRow(main, "Đã sửa qua kiểm thử");
+
+        // Hủy văn bản (bắt buộc lý do) rồi khôi phục
+        WaitRow(main, "99/UI-TEST").AsGridRow().Select();
+        Click(main, "Hủy văn bản");
+        var huy = WaitWindow("Hủy văn bản", exact: true);
+        Keyboard.Type("Nhap nham khi kiem thu");
+        Click(huy, "Hủy văn bản");
+        WaitRow(main, "Đã hủy");
+        Shot(main, "van-ban-da-huy");
+        WaitRow(main, "99/UI-TEST").AsGridRow().Select();
+        Click(main, "Khôi phục");
+        AnswerConfirm(true);
+        Assert.True(SpinWait(() => FindRow(main, "Đã hủy") == null, Wait), "Văn bản chưa được khôi phục");
+
+        // Xem trước khi in sổ
+        main.Focus();
+        Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_P);
+        var opt = WaitWindow("In sổ");
+        Click(opt, "Xem trước");
+        var preview = WaitWindow("Xem trước khi in");
+        Thread.Sleep(1500);
+        Shot(preview, "xem-truoc-in");
+        AssertNoErrorDialog();
+        preview.Close();
+        Thread.Sleep(500);
+
+        // Sao lưu nhanh
+        Nav(main, "Sao lưu / Khôi phục");
+        Thread.Sleep(500);
+        Click(main, "Sao lưu nhanh");
+        DismissMessage();
+        Shot(main, "sao-luu-nhanh");
+
+        // Đổi mật khẩu (dùng mật khẩu mới để mở khóa màn hình ở bước sau)
+        Nav(main, "Cấu hình");
+        Thread.Sleep(500);
+        Click(main, "Đổi mật khẩu…");
+        foreach (var pw in new[] { Password, NewPassword, NewPassword })
+        {
+            WaitWindow("Đổi mật khẩu", exact: true);
+            Thread.Sleep(400);
+            Keyboard.Type(pw);
+            Keyboard.Press(VirtualKeyShort.RETURN);
+            Thread.Sleep(800);
+        }
+        DismissMessage(); // "Đã đổi mật khẩu"
+
+        // Xóa dữ liệu mẫu: văn bản thật phải còn nguyên
+        Click(main, "Xóa dữ liệu mẫu");
+        AnswerConfirm(true);
+        DismissMessage();
+        Nav(main, "Văn bản đi");
+        Thread.Sleep(800);
+        var search = main.FindFirstDescendant(c => c.ByAutomationId("TxtSearch"))!.AsTextBox();
+        search.Text = "";
+        Thread.Sleep(800);
+        WaitRow(main, "99/UI-TEST");
+        Assert.Null(FindRow(main, "[MẪU]"));
+        Shot(main, "sau-khi-xoa-du-lieu-mau");
+
         // Khóa màn hình
         main.Focus();
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_L);
         var lockW = WaitWindow("Đã khóa");
         Shot(lockW, "khoa-man-hinh");
-        Type(lockW, "TxtPassword", Password);
+        Type(lockW, "TxtPassword", NewPassword);
         Click(lockW, "Mở khóa");
         Thread.Sleep(800);
 
@@ -134,7 +238,8 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         var logs = Directory.GetFiles(Path.Combine(work, "Data", "Logs"), "*.log").SelectMany(File.ReadAllLines).ToList();
         foreach (var l in logs) output.WriteLine(l);
         Assert.DoesNotContain(logs, l => l.Contains("[ERR]") || l.Contains("[FTL]"));
-        Assert.DoesNotContain(logs, l => l.Contains(Password));
+        Assert.DoesNotContain(logs, l => l.Contains(Password) || l.Contains(NewPassword) || l.Contains(code));
+        Assert.NotEmpty(Directory.GetFiles(Path.Combine(work, "Data", "Backup"), "*_nhanh.qlvbak"));
     }
 
     // ------------------------------------------------------------------ tiện ích
@@ -233,6 +338,29 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
             catch (Exception) { }
         }
         return result;
+    }
+
+    /// <summary>Dòng của bảng (DataGrid "Grid") có ô chứa đoạn văn bản.</summary>
+    private static AutomationElement? FindRow(Window main, string text)
+    {
+        var grid = main.FindFirstDescendant(c => c.ByAutomationId("Grid"));
+        if (grid == null) return null;
+        foreach (var r in grid.FindAllChildren(c => c.ByControlType(ControlType.DataItem)))
+            if (r.FindAllDescendants().Any(e => (e.Properties.Name.ValueOrDefault ?? "").Contains(text, StringComparison.Ordinal)))
+                return r;
+        return null;
+    }
+
+    private AutomationElement WaitRow(Window main, string text)
+    {
+        AutomationElement? row = null;
+        SpinWait(() => (row = FindRow(main, text)) != null, Wait);
+        if (row == null)
+        {
+            Shot(main, "khong-thay-dong");
+            throw new Exception($"Không thấy dòng chứa \"{text}\" trong danh sách");
+        }
+        return row;
     }
 
     private static void Type(AutomationElement root, string id, string text)

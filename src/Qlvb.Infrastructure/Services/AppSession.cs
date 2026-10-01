@@ -92,7 +92,21 @@ public sealed class AppSession : IDisposable
     {
         var key = Keys.Unlock(password);
         Open(key, create: false, beforeUpgrade);
+        KiemTraDongHo();
         Store!.AppendAudit(new AuditEntry("Đăng nhập", "he_thong", null, "Đăng nhập thành công"));
+    }
+
+    /// <summary>Cảnh báo khi đồng hồ máy sớm hơn thao tác cuối cùng đã ghi (máy bị chỉnh lùi giờ, hết pin CMOS…). null nếu bình thường.</summary>
+    public string? CanhBaoDongHo { get; private set; }
+
+    private void KiemTraDongHo()
+    {
+        var last = Store!.ListAudit(new AuditFilter { Limit = 1 }).FirstOrDefault()?.ThoiGian;
+        var now = Clock.Now;
+        CanhBaoDongHo = last is { } t && t > now.AddMinutes(5)
+            ? $"Ngày giờ của máy tính ({now:dd/MM/yyyy HH:mm}) đang sớm hơn thao tác gần nhất đã ghi trong nhật ký ({t:dd/MM/yyyy HH:mm}).\n\n" +
+              "Đồng hồ máy có thể đã bị chỉnh lùi hoặc hết pin. Hãy kiểm tra lại ngày giờ trước khi đăng ký văn bản, vì ngày đăng ký lấy theo đồng hồ máy."
+            : null;
     }
 
     /// <summary>Kiểm tra mật khẩu khi mở khóa màn hình. Ghi nhật ký kết quả.</summary>

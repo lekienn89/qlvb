@@ -14,6 +14,9 @@
     <PackageReference Include="Serilog.Sinks.File" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Qlvb.Tests" />
+  </ItemGroup>
+  <ItemGroup>
     <EmbeddedResource Include="Migrations\*.sql" />
     <EmbeddedResource Include="Forms\*.json" />
   </ItemGroup>

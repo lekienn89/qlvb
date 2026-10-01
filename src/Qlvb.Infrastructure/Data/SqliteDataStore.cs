@@ -59,9 +59,14 @@ public sealed partial class SqliteDataStore(Database db, IClock clock, ICurrentU
         if (ex.SqliteErrorCode == 19 && m.Contains("so_den")) return new BusinessException("Số đến này đã được dùng trong năm.", "SoDen");
         if (ex.SqliteErrorCode == 19 && m.Contains("UNIQUE")) return new BusinessException("Dữ liệu bị trùng với bản ghi đã có.");
         if (ex.SqliteErrorCode is 13) return new BusinessException("Ổ đĩa đã đầy, không ghi được dữ liệu. Hãy giải phóng dung lượng rồi thử lại.");
-        if (ex.SqliteErrorCode is 11) return new DatabaseOpenException("Cơ sở dữ liệu bị hỏng. Hãy khôi phục từ bản sao lưu gần nhất.", ex);
+        if (ex.SqliteErrorCode is 11 or 26) return new DatabaseOpenException("Cơ sở dữ liệu bị hỏng. Hãy khôi phục từ bản sao lưu gần nhất.", ex);
+        if (ex.SqliteErrorCode is 10) return new BusinessException("Lỗi đọc/ghi ổ đĩa, dữ liệu chưa được lưu. Hãy kiểm tra ổ đĩa (USB bị rút, ổ hỏng…) rồi thử lại.");
+        if (ex.SqliteErrorCode is 8) return new BusinessException("Thư mục dữ liệu đang ở chế độ chỉ đọc, không ghi được. Hãy kiểm tra quyền ghi của thư mục dữ liệu.");
+        if (ex.SqliteErrorCode is 5 or 6) return new BusinessException("Dữ liệu đang bận (có thể phần mềm đang mở ở nơi khác). Vui lòng thử lại sau giây lát.");
         return ex;
     }
+
+    internal static Exception TranslateForTest(SqliteException ex) => Translate(ex);
 
     private SqliteCommand Cmd(string sql, SqliteTransaction? tx = null, params (string, object?)[] ps)
     {

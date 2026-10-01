@@ -153,8 +153,8 @@ public sealed class KeyStore
     /// <summary>Kiểm tra tệp khóa (có thể là tệp khóa trong bản sao lưu) mở được bằng mật khẩu, không ghi bộ đếm.</summary>
     public static byte[]? TryUnlockFile(string keyFileJson, string password)
     {
-        var f = JsonSerializer.Deserialize(keyFileJson, KeyFileJson.Default.KeyFile);
-        return f?.Password == null ? null : TryUnwrap(f.Password, password, "password", f.Iterations);
+        var f = Parse(keyFileJson);
+        return TryUnwrap(f.Password!, password, "password", f.Iterations);
     }
 
     public string ReadRaw() => File.ReadAllText(_path);
@@ -162,7 +162,7 @@ public sealed class KeyStore
     /// <summary>Ghi đè tệp khóa (dùng khi khôi phục từ bản sao lưu).</summary>
     public void ReplaceRaw(string json)
     {
-        _ = JsonSerializer.Deserialize(json, KeyFileJson.Default.KeyFile) ?? throw new InvalidDataException("Tệp khóa không hợp lệ.");
+        _ = Parse(json);
         WriteAtomic(_path, json);
     }
 
@@ -265,8 +265,18 @@ public sealed class KeyStore
     private KeyFile Load()
     {
         if (!Exists) throw new FileNotFoundException("Không tìm thấy tệp khóa dữ liệu.");
-        return JsonSerializer.Deserialize(File.ReadAllText(_path), KeyFileJson.Default.KeyFile)
-               ?? throw new InvalidDataException("Tệp khóa dữ liệu bị hỏng.");
+        return Parse(File.ReadAllText(_path));
+    }
+
+    /// <summary>Đọc tệp khóa; nội dung hỏng thì báo lỗi dễ hiểu thay vì lỗi kỹ thuật của bộ đọc JSON.</summary>
+    internal static KeyFile Parse(string json)
+    {
+        const string msg = "Tệp khóa dữ liệu (qlvb.key) bị hỏng hoặc không đúng định dạng. Hãy khôi phục từ bản sao lưu gần nhất.";
+        KeyFile? f;
+        try { f = JsonSerializer.Deserialize(json, KeyFileJson.Default.KeyFile); }
+        catch (JsonException ex) { throw new InvalidDataException(msg, ex); }
+        if (f?.Password == null || f.Recovery == null) throw new InvalidDataException(msg);
+        return f;
     }
 
     private void Save(KeyFile f) => WriteAtomic(_path, JsonSerializer.Serialize(f, KeyFileJson.Default.KeyFile));
