@@ -10,5 +10,7 @@
 | xUnit, Microsoft.NET.Test.Sdk (chỉ kiểm thử) | 2.9.3 / 17.14.1 | Apache-2.0 / MIT |
 | FlaUI.UIA3 (chỉ kiểm thử) | 5.0.0 | MIT |
 | Inno Setup (chỉ tạo bộ cài) | 6 | Inno Setup License |
+| Bản dịch tiếng Việt của Inno Setup, tác giả memecoder (`installer/Languages/Vietnamese.isl`, nguyên bản, chỉ thêm BOM UTF-8) | 6.5.0+ | Inno Setup License |
+| Python-Markdown (chỉ dùng khi build để tạo tài liệu HTML, không đi kèm phần mềm) | 3.11 | BSD-3-Clause |
 
 Không sao chép mã nguồn từ phần mềm quản lý văn bản mã nguồn mở khác; chỉ tham khảo ý tưởng.

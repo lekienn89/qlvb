@@ -3,6 +3,7 @@ name: build-windows
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
   workflow_dispatch:
 
@@ -54,6 +55,15 @@ jobs:
           QLVB_EXE: ${{ github.workspace }}\artifacts\publish\QLVB.exe
           QLVB_SCREENSHOTS: ${{ github.workspace }}\artifacts\screenshots
 
+      - name: Tài liệu HTML
+        id: docs
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check -q "markdown==3.11"
+          python tools/build-docs.py artifacts/docs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
       - name: Portable package
         if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
         shell: pwsh
@@ -62,8 +72,9 @@ jobs:
           New-Item -ItemType Directory -Force $p | Out-Null
           Copy-Item artifacts/publish/QLVB.exe, artifacts/publish/*.dll -Destination $p
           Set-Content -Path "$p/portable.flag" -Value "Ban portable: du lieu luu trong thu muc Data canh QLVB.exe" -Encoding utf8
-          if (Test-Path docs) { Copy-Item -Recurse docs "$p/docs" }
-          Copy-Item README.md, LICENSE, NOTICE.md -Destination $p -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force "$p/docs" | Out-Null
+          Copy-Item artifacts/docs/*.html -Destination "$p/docs"
+          Copy-Item README.md, LICENSE, NOTICE.md, CHANGELOG.md -Destination $p
           Compress-Archive -Path "$p/*" -DestinationPath artifacts/QLVB-portable-win-x64.zip -Force
 
       - name: Installer (Inno Setup)
@@ -94,6 +105,25 @@ jobs:
           Get-ChildItem artifacts/*.zip, artifacts/installer/*.exe | ForEach-Object { "{0,12:N0}  {1}" -f $_.Length, $_.Name }
           Get-Content artifacts/SHA256SUMS.txt
           if (-not (Test-Path artifacts/installer/*.exe) -or -not (Test-Path artifacts/*.zip)) { Write-Error "Thieu goi cai dat hoac ban portable"; exit 1 }
+
+      - name: GitHub Release
+        if: ${{ success() && startsWith(github.ref, 'refs/tags/v') }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $ver = $tag.TrimStart('v')
+          $props = [xml](Get-Content Directory.Build.props)
+          $projVer = ($props.Project.PropertyGroup | ForEach-Object { $_.Version } | Where-Object { $_ }) | Select-Object -First 1
+          if ($projVer -ne $ver) { Write-Error "Tag $tag khong khop phien ban $projVer trong Directory.Build.props"; exit 1 }
+          $log = Get-Content CHANGELOG.md -Raw -Encoding utf8
+          $m = [regex]::Match($log, "(?ms)^## $([regex]::Escape($ver))\b.*?(?=^## |\z)")
+          $notes = if ($m.Success) { $m.Value } else { "Phiên bản $ver" }
+          $notes += "`n`n### Tải về`n`n- **QLVB-Setup-$ver-win-x64.exe**: bộ cài đặt (không cần quyền quản trị).`n- **QLVB-portable-win-x64.zip**: bản portable, giải nén vào thư mục cố định (ví dụ D:\QLVB).`n- **SHA256SUMS.txt**: mã kiểm tra; đối chiếu trước khi cài (xem Hướng dẫn quản trị, mục 2.1).`n`nBộ cài chưa ký số: Windows có thể cảnh báo khi chạy lần đầu."
+          Set-Content -Path artifacts/release-notes.md -Value $notes -Encoding utf8
+          gh release create $tag artifacts/installer/*.exe artifacts/QLVB-portable-win-x64.zip artifacts/SHA256SUMS.txt --title "Quản lý văn bản đi – đến $ver" --notes-file artifacts/release-notes.md --verify-tag
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Publish screenshots to branch ci-screenshots
         if: always() && github.event_name != 'pull_request'

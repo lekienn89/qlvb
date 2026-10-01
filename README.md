@@ -28,4 +28,19 @@ dotnet publish src/Qlvb.App -c Release -o artifacts/publish
 
 GitHub Actions (`.github/workflows/build.yml`) build trên Windows, chạy kiểm thử, tạo bộ cài và bản portable.
 
-Tài liệu đầy đủ (hướng dẫn sử dụng, quản trị, kỹ thuật) sẽ có trong thư mục `docs/` ở giai đoạn phát hành.
+## Tải về
+
+Bản phát hành (bộ cài, bản portable, `SHA256SUMS.txt`) ở mục **Releases** của kho.
+
+## Tài liệu
+
+- [Hướng dẫn sử dụng](docs/HuongDanSuDung.md)
+- [Hướng dẫn quản trị](docs/HuongDanQuanTri.md): cài đặt, thư mục dữ liệu, sao lưu, khôi phục, xử lý sự cố, ký số
+- [Tài liệu kỹ thuật](docs/TaiLieuKyThuat.md): kiến trúc, mã hóa, lược đồ, biểu mẫu sổ, build và phát hành
+- [Nhật ký thay đổi](CHANGELOG.md)
+
+Bộ cài và bản portable kèm các tài liệu này ở dạng HTML trong thư mục `docs`.
+
+## Giấy phép
+
+Phần mềm nội bộ, xem [LICENSE](LICENSE). Thư viện bên thứ ba: [NOTICE.md](NOTICE.md).

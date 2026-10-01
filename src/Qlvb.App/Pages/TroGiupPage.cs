@@ -32,8 +32,8 @@ public sealed class TroGiupPage : UserControl, IPage
         ("Sửa, hủy, khôi phục", [
             "Sửa: hiện bảng so sánh giá trị cũ/mới để xác nhận; mọi thay đổi ghi vào nhật ký. Không đổi được số thứ tự, số đến, năm.",
             "Hủy: cần lý do; văn bản vẫn nằm trên sổ với ghi chú \"ĐÃ HỦY\". Có thể khôi phục.",
-            "Xóa văn bản nhập sai: chuột phải → Xóa văn bản nhập sai… (cần mật khẩu và lý do, ghi nhật ký). Xóa văn bản mang số cuối cùng của năm thì số đó được cấp lại; xóa văn bản ở giữa thì số đó để trống.",
-            "Sổ đã khóa thì không thêm, sửa, hủy văn bản được (Danh mục → Sổ đăng ký).",
+            "Xóa văn bản nhập sai: chọn văn bản, bấm nút \"Xóa văn bản nhập sai…\" hoặc nhấn chuột phải chọn lệnh cùng tên (cần mật khẩu và lý do, ghi nhật ký). Xóa văn bản mang số cuối cùng của năm thì số đó được cấp lại; xóa văn bản ở giữa thì số đó để trống.",
+            "Sổ đã khóa thì không thêm, sửa, hủy, xóa văn bản được (Danh mục → Sổ đăng ký).",
         ]),
         ("In và xuất", [
             "In sổ: chọn năm, quyển, trang bìa, khổ giấy; xem trước rồi bấm In. Lưu PDF bằng máy in \"Microsoft Print to PDF\".",
@@ -60,8 +60,39 @@ public sealed class TroGiupPage : UserControl, IPage
             foreach (var p in ps) list.ListItems.Add(new ListItem(new Paragraph(new Run(p))));
             doc.Blocks.Add(list);
         }
-        doc.Blocks.Add(new Paragraph(new Run("Tài liệu chi tiết: Hướng dẫn sử dụng, Hướng dẫn quản trị đi kèm bộ cài đặt (thư mục docs).")) { Foreground = System.Windows.Media.Brushes.DimGray });
-        Content = new FlowDocumentScrollViewer { Document = doc, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+        doc.Blocks.Add(new Paragraph(new Run("Tài liệu chi tiết đi kèm phần mềm trong thư mục docs, mở bằng các nút phía trên.")) { Foreground = System.Windows.Media.Brushes.DimGray });
+
+        var buttons = new WrapPanel { Margin = new Thickness(8, 4, 8, 8) };
+        foreach (var (text, file) in Docs)
+        {
+            var b = new Button { Content = text, Margin = new Thickness(0, 0, 8, 0) };
+            b.Click += (_, _) => OpenDoc(file);
+            buttons.Children.Add(b);
+        }
+        var root = new DockPanel();
+        DockPanel.SetDock(buttons, Dock.Top);
+        root.Children.Add(buttons);
+        root.Children.Add(new FlowDocumentScrollViewer { Document = doc, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+        Content = root;
+    }
+
+    private static readonly (string Text, string File)[] Docs =
+    [
+        ("Hướng dẫn sử dụng đầy đủ", "HuongDanSuDung.html"),
+        ("Hướng dẫn quản trị", "HuongDanQuanTri.html"),
+        ("Nhật ký thay đổi", "CHANGELOG.html"),
+    ];
+
+    /// <summary>Mở tài liệu HTML cục bộ (thư mục docs cạnh QLVB.exe) bằng trình duyệt mặc định. Tài liệu không tải gì từ mạng.</summary>
+    private static void OpenDoc(string file)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "docs", file);
+        if (!File.Exists(path))
+        {
+            Dlg.Info($"Không tìm thấy tài liệu {file} trong thư mục docs cạnh phần mềm. Hãy cài lại phần mềm hoặc giải nén lại bản portable.");
+            return;
+        }
+        Dlg.Try(() => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true })?.Dispose(), "mở tài liệu");
     }
 
     public void OnShow() { }
