@@ -183,8 +183,11 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Thread.Sleep(1500);
         Shot(preview, "xem-truoc-in");
         AssertNoErrorDialog();
-        preview.Close();
+        Click(preview, "Đóng (Esc)");
         Thread.Sleep(500);
+        Click(opt, "Đóng");
+        Thread.Sleep(500);
+        Assert.DoesNotContain(AllWindows(), w => w.Title.StartsWith("In sổ", StringComparison.Ordinal) || w.Title.StartsWith("Xem trước", StringComparison.Ordinal));
 
         // Sao lưu nhanh
         Nav(main, "Sao lưu / Khôi phục");

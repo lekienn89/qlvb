@@ -43,6 +43,13 @@ public sealed class PrintPreviewWindow : Window
         var viewer = new DocumentViewer { Document = doc };
         // Thay nút in mặc định của DocumentViewer bằng hộp thoại có ghi nhật ký.
         viewer.CommandBindings.Add(new CommandBinding(ApplicationCommands.Print, (_, e) => { DoPrint(); e.Handled = true; }));
+        // Không cho sao chép nội dung sổ (tài liệu mật) ra bộ nhớ tạm từ màn hình xem trước.
+        viewer.CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy, (_, e) => e.Handled = true, (_, e) => { e.CanExecute = false; e.Handled = true; }));
+        // Ẩn thanh tìm kiếm tiếng Anh mặc định ("Type text to find…").
+        viewer.Loaded += (_, _) =>
+        {
+            if (viewer.Template?.FindName("PART_FindToolBarHost", viewer) is FrameworkElement find) find.Visibility = Visibility.Collapsed;
+        };
         dock.Children.Add(viewer);
         Content = dock;
         InputBindings.Add(new KeyBinding(ApplicationCommands.Print, Key.P, ModifierKeys.Control));
