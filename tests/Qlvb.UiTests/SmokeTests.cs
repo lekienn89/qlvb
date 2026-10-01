@@ -91,7 +91,8 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         trichYeu.Focus();
         Keyboard.Type("Noi dung thu");
         var cb = form.FindFirstDescendant(cf => cf.ByAutomationId("CbDoMat"))!.AsComboBox();
-        cb.Select(0); // TUYỆT MẬT (mức cao nhất đứng đầu)
+        // Chọn TUYỆT MẬT (mức cao nhất đứng đầu). Chạy nền vì phần mềm mở hộp xác nhận ngay trong sự kiện chọn.
+        _ = Task.Run(() => { try { cb.Select(0); } catch (Exception) { /* UIA chờ hộp thoại: bình thường */ } });
         AnswerConfirm(true);       // xác nhận xóa trích yếu
         DismissMessage();          // thông báo đã khóa ô trích yếu
         Thread.Sleep(500);
