@@ -120,7 +120,7 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
         form = WaitWindow("Văn bản đi", exact: true);
         Type(form, "CbTenLoai", "Công văn");
-        Type(form, "TxtSoKyHieu", "99/UI-TEST");
+        TypeReplace(form, "TxtSoKyHieu", "99/UI-TEST");
         var cbDm = form.FindFirstDescendant(cf => cf.ByAutomationId("CbDoMat"))!;
         cbDm.Focus();
         Thread.Sleep(200);
@@ -132,9 +132,12 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Type(form, "CbNoiNhan", "Phòng Kế hoạch kiểm thử");
         Click(form, "Thêm nơi nhận");
         Shot(form, "nhap-van-ban-di");
-        form.Focus();
-        Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_S);
-        Assert.True(SpinWait(() => !AllWindows().Any(w => w.Title == "Văn bản đi"), Wait), "Form không đóng sau khi lưu");
+        Click(form, "Lưu (Ctrl+S)");
+        if (!SpinWait(() => !AllWindows().Any(w => w.Title == "Văn bản đi"), Wait))
+        {
+            Shot(form, "form-khong-dong");
+            throw new Exception("Form không đóng sau khi lưu. Hộp thoại đang mở: " + DescribeDialogs());
+        }
         AssertNoErrorDialog();
 
         // Lọc danh sách đúng văn bản vừa nhập
@@ -149,8 +152,7 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Click(main, "Sửa");
         var edit = WaitWindow("Sửa văn bản đi", exact: true);
         Type(edit, "TxtGhiChu", "Đã sửa qua kiểm thử");
-        edit.Focus();
-        Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_S);
+        Click(edit, "Lưu thay đổi (Ctrl+S)");
         var xacNhan = WaitWindow("Xác nhận thay đổi", exact: true);
         Shot(xacNhan, "xac-nhan-thay-doi");
         Click(xacNhan, "Lưu thay đổi");
@@ -361,6 +363,23 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
             throw new Exception($"Không thấy dòng chứa \"{text}\" trong danh sách");
         }
         return row;
+    }
+
+    /// <summary>Tiêu đề và nội dung chữ của các hộp thoại đang mở (để chẩn đoán khi kiểm thử lỗi).</summary>
+    private string DescribeDialogs() => string.Join(" || ", AllWindows().Select(w =>
+    {
+        try { return w.Title + ": " + string.Join(" ", w.FindAllDescendants(c => c.ByControlType(ControlType.Text)).Select(t => t.Name).Take(15)); }
+        catch (Exception) { return "?"; }
+    }));
+
+    private static void TypeReplace(AutomationElement root, string id, string text)
+    {
+        var e = root.FindFirstDescendant(c => c.ByAutomationId(id)) ?? throw new Exception("Không thấy ô " + id);
+        e.Focus();
+        Thread.Sleep(100);
+        Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_A);
+        Keyboard.Type(text);
+        Thread.Sleep(100);
     }
 
     private static void Type(AutomationElement root, string id, string text)
