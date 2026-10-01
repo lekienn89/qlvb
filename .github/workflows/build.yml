@@ -32,6 +32,7 @@ jobs:
         run: dotnet test tests/Qlvb.Tests -c Release --no-build --logger "trx;LogFileName=unit.trx" --results-directory artifacts/test-results
 
       - name: Publish (single-file, self-contained, win-x64)
+        id: publish
         run: dotnet publish src/Qlvb.App -c Release -o artifacts/publish
 
       - name: UI smoke tests (FlaUI)
@@ -41,6 +42,7 @@ jobs:
           QLVB_SCREENSHOTS: ${{ github.workspace }}\artifacts\screenshots
 
       - name: Portable package
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
         shell: pwsh
         run: |
           $p = "artifacts/portable/QLVB-portable"
@@ -52,6 +54,7 @@ jobs:
           Compress-Archive -Path "$p/*" -DestinationPath artifacts/QLVB-portable-win-x64.zip -Force
 
       - name: Installer (Inno Setup)
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
         shell: pwsh
         run: |
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
@@ -60,6 +63,7 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Checksums
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' }}
         shell: pwsh
         run: |
           Get-ChildItem artifacts/*.zip, artifacts/installer/*.exe | ForEach-Object {

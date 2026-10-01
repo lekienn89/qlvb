@@ -85,14 +85,17 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Nav(main, "Văn bản đi");
         Thread.Sleep(500);
         Keyboard.TypeSimultaneously(VirtualKeyShort.CONTROL, VirtualKeyShort.KEY_N);
-        var form = WaitWindow("Văn bản đi");
+        var form = WaitWindow("Văn bản đi", exact: true); // tiêu đề cửa sổ chính cũng chứa "Văn bản đi"
         Shot(form, "form-van-ban-di");
         var trichYeu = form.FindFirstDescendant(cf => cf.ByAutomationId("TxtTrichYeu"))!.AsTextBox();
         trichYeu.Focus();
         Keyboard.Type("Noi dung thu");
         var cb = form.FindFirstDescendant(cf => cf.ByAutomationId("CbDoMat"))!.AsComboBox();
-        // Chọn TUYỆT MẬT (mức cao nhất đứng đầu). Chạy nền vì phần mềm mở hộp xác nhận ngay trong sự kiện chọn.
-        _ = Task.Run(() => { try { cb.Select(0); } catch (Exception) { /* UIA chờ hộp thoại: bình thường */ } });
+        // Chọn TUYỆT MẬT (mức cao nhất đứng đầu) bằng bàn phím: phần mềm mở hộp xác nhận ngay trong sự kiện chọn,
+        // gọi UIA Select sẽ bị chặn đến khi hộp thoại đóng.
+        cb.Focus();
+        Thread.Sleep(200);
+        Keyboard.Press(VirtualKeyShort.HOME);
         AnswerConfirm(true);       // xác nhận xóa trích yếu
         DismissMessage();          // thông báo đã khóa ô trích yếu
         Thread.Sleep(500);
@@ -119,7 +122,7 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         Thread.Sleep(800);
 
         // Thoát (tự sao lưu khi thoát)
-        main = WaitWindow("Quản lý văn bản đi – đến");
+        main = WaitWindow("– Quản lý văn bản đi – đến");
         main.Close();
         AnswerConfirm(true);
         var exited = SpinWait(() => _app.HasExited, TimeSpan.FromSeconds(30));
@@ -135,25 +138,24 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
     }
 
     // ------------------------------------------------------------------ tiện ích
-    private Window WaitWindow(string titlePart)
+    private Window WaitWindow(string titlePart, bool exact = false)
     {
         Window? found = null;
         SpinWait(() =>
         {
-            found = _app!.GetAllTopLevelWindows(_auto).FirstOrDefault(w => w.Title.Contains(titlePart, StringComparison.Ordinal))
-                    ?? _app.GetAllTopLevelWindows(_auto).SelectMany(w => w.ModalWindows).FirstOrDefault(w => w.Title.Contains(titlePart, StringComparison.Ordinal));
+            found = AllWindows().FirstOrDefault(w => exact ? w.Title == titlePart : w.Title.Contains(titlePart, StringComparison.Ordinal));
             return found != null;
         }, Wait);
         if (found == null)
         {
-            var titles = string.Join(" | ", _app!.GetAllTopLevelWindows(_auto).Select(w => w.Title));
+            var titles = string.Join(" | ", AllWindows().Select(w => w.Title));
             throw new Exception($"Không thấy cửa sổ \"{titlePart}\". Đang có: {titles}");
         }
         found.SetForeground();
         return found;
     }
 
-    private Window WaitDialog() => WaitWindow("Quản lý văn bản đi – đến");
+    private Window WaitDialog() => WaitWindow("Quản lý văn bản đi – đến", exact: true); // hộp thông báo (cửa sổ chính có tiền tố tên trang)
 
     /// <summary>Trả lời hộp xác nhận (nút "Đồng ý"/"Không").</summary>
     private void AnswerConfirm(bool yes)
@@ -195,10 +197,42 @@ public sealed class SmokeTests(ITestOutputHelper output) : IDisposable
         }
     }
 
-    private IEnumerable<Window> AllWindows()
+    /// <summary>Mọi cửa sổ của tiến trình, kể cả hộp thoại lồng nhiều cấp (hộp xác nhận mở từ form đang là modal).</summary>
+    private List<Window> AllWindows()
     {
-        var tops = _app!.GetAllTopLevelWindows(_auto);
-        return tops.Concat(tops.SelectMany(t => t.ModalWindows));
+        var result = new List<Window>();
+        var seen = new HashSet<string>();
+        void Add(Window w, int depth)
+        {
+            string key;
+            try { key = w.Properties.NativeWindowHandle.ValueOrDefault.ToString() + "|" + w.Title; }
+            catch (Exception) { return; }
+            if (!seen.Add(key)) return;
+            result.Add(w);
+            if (depth > 5) return;
+            Window[] modals;
+            try { modals = w.ModalWindows; } catch (Exception) { return; }
+            foreach (var m in modals) Add(m, depth + 1);
+        }
+        try
+        {
+            foreach (var e in _auto.GetDesktop().FindAllChildren(cf => cf.ByProcessId(_app!.ProcessId)))
+                if (e.ControlType == ControlType.Window) Add(e.AsWindow(), 0);
+        }
+        catch (Exception) { /* cửa sổ đang đóng/mở */ }
+        try { foreach (var w in _app!.GetAllTopLevelWindows(_auto)) Add(w, 0); }
+        catch (Exception) { }
+        // Hộp thoại có chủ là cửa sổ khác vẫn có thể nằm dưới cửa sổ chủ trong cây UIA
+        foreach (var w in result.ToList())
+        {
+            try
+            {
+                foreach (var d in w.FindAllDescendants(cf => cf.ByControlType(ControlType.Window)))
+                    Add(d.AsWindow(), 1);
+            }
+            catch (Exception) { }
+        }
+        return result;
     }
 
     private static void Type(AutomationElement root, string id, string text)
